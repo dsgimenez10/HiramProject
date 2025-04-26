@@ -1,0 +1,169 @@
+:root {
+	/* Variables de color */
+	--darkBlue: #217093;
+	--medBlue: #4eb8dd;
+	--lightBlue: #ddf1fa;
+	--inputBG: #f3fafd;
+}
+
+html, body {
+	margin: 0;
+	padding: 0;
+	height: 100%;
+	background: #eff3f4;
+	font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.login-wrapper {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	height: 100%;
+	padding: 1rem;
+}
+
+/* FORMULARIO */
+form {
+	background-color: #FFF;
+	width: 100%;
+	max-width: 340px;
+	padding: 2rem;
+	border: solid 1px #DDD;
+	border-radius: 0.5em;
+	text-align: left;
+	position: relative;
+	box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* TITULOS */
+form h2 {
+	text-align: center;
+	margin-bottom: 1.5rem;
+}
+
+/* CONTENEDOR SVG YETI */
+.svgContainer {
+	position: relative;
+	width: 200px;
+	height: 200px;
+	margin: 0 auto 1.5rem;
+	border-radius: 50%;
+	pointer-events: none;
+}
+
+.svgContainer::after {
+	content: "";
+	position: absolute;
+	top: 0;
+	left: 0;
+	z-index: 10;
+	width: 100%;
+	height: 100%;
+	box-sizing: border-box;
+	border: solid 2.5px var(--darkBlue);
+	border-radius: 50%;
+}
+
+.svgContainer div {
+	position: relative;
+	width: 100%;
+	height: 0;
+	overflow: hidden;
+	border-radius: 50%;
+	padding-bottom: 100%;
+}
+
+.mySVG {
+	position: absolute;
+	left: 0;
+	top: 0;
+	width: 100%;
+	height: 100%;
+	pointer-events: none;
+}
+
+/* CAMPOS DE ENTRADA */
+.inputGroup {
+	margin-bottom: 1.5rem;
+}
+
+label {
+	font-weight: 600;
+	margin-bottom: 0.25rem;
+	display: inline-block;
+}
+
+input[type="text"],
+input[type="password"] {
+	width: 100%;
+	padding: 0.75rem;
+	border: 1px solid #CCC;
+	border-radius: 0.3rem;
+	background-color: var(--inputBG);
+	font-size: 1rem;
+	transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+input:focus {
+	border-color: var(--medBlue);
+	background-color: #ffffff;
+	outline: none;
+}
+
+/* CHECKBOX: Mostrar contraseña */
+.show-password-wrapper {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	font-size: 0.9rem;
+	margin-top: -0.5rem;
+	margin-bottom: 1rem;
+}
+
+input[type="checkbox"] {
+	cursor: pointer;
+}
+
+/* BOTÓN ENTRAR */
+button {
+	width: 100%;
+	background-color: var(--darkBlue);
+	color: white;
+	padding: 0.75rem;
+	font-size: 1rem;
+	border: none;
+	border-radius: 0.3rem;
+	cursor: pointer;
+	transition: background-color 0.3s ease;
+}
+
+button:hover,
+button:focus {
+	background-color: var(--medBlue);
+	outline: none;
+}
+
+/* MENSAJES DE ERROR */
+.error {
+	color: red;
+	margin-top: 0.5rem;
+	font-size: 0.9rem;
+}
+
+/* RESPONSIVE */
+@media (max-width: 400px) {
+	form {
+		padding: 1rem;
+	}
+}
+
+.show-password-wrapper {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	font-size: 0.9rem;
+	margin-top: 0.5rem;   /* <--- Antes estaba en negativo, ahora lo separamos */
+	margin-bottom: 1rem;
+}
+
+

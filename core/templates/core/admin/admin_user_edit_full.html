@@ -1,0 +1,313 @@
+{% extends 'core/dashboard.html' %}
+{% load static %}
+{% load custom_tags %}
+
+{% block title %}Modificar Usuario{% endblock title %}
+{% block title1 %}GlobalGes{% endblock title1 %}
+{% block title2 %}Usuarios{% endblock title2 %}
+{% block title3 %}Modificar Usuario{% endblock title3 %}
+
+{% block content %}
+<div class="row">
+  <div class="col-12">
+    <div class="card rounded-4">
+
+      <!-- Encabezado -->
+      <div class="card-header">
+        <h4 class="header-title">Modificar Usuario: {{ user_obj.username }}</h4>
+        <p class="text-muted mb-0">Edición estilo Admin Django</p>
+      </div>
+
+      <!-- Cuerpo -->
+      <div class="card-body p-4">
+
+        <!-- Mensajes -->
+        {% if messages %}
+          {% for msg in messages %}
+            <div class="alert alert-info">{{ msg }}</div>
+          {% endfor %}
+        {% endif %}
+
+        <form method="POST">
+          {% csrf_token %}
+
+          <!-- ============= Campos "básicos" del form ============= -->
+          <fieldset class="border p-3 mb-3">
+            <legend class="fs-15 fw-semibold">Información de la Cuenta</legend>
+            
+            <!-- Username con help_text -->
+            <div class="mb-3">
+              <label class="form-label" for="{{ form.username.id_for_label }}">
+                {{ form.username.label }}
+              </label>
+              {{ form.username|addclass:"form-control" }}
+              {% if form.username.help_text %}
+                <div class="form-text text-muted">
+                  {{ form.username.help_text }}
+                </div>
+              {% endif %}
+              {% if form.username.errors %}
+                <div class="text-danger">
+                  {{ form.username.errors }}
+                </div>
+              {% endif %}
+            </div>
+
+            <!-- Contraseñas -->
+            <div class="mb-3">
+              <label class="form-label" for="{{ form.new_password.id_for_label }}">
+                {{ form.new_password.label }}
+              </label>
+              {{ form.new_password|addclass:"form-control" }}
+              {% if form.new_password.errors %}
+                <div class="text-danger">{{ form.new_password.errors }}</div>
+              {% endif %}
+            </div>
+            <div class="mb-3">
+              <label class="form-label" for="{{ form.confirm_password.id_for_label }}">
+                {{ form.confirm_password.label }}
+              </label>
+              {{ form.confirm_password|addclass:"form-control" }}
+              {% if form.confirm_password.errors %}
+                <div class="text-danger">{{ form.confirm_password.errors }}</div>
+              {% endif %}
+            </div>
+          </fieldset>
+
+          <fieldset class="border p-3 mb-3">
+            <legend class="fs-15 fw-semibold">Información Personal</legend>
+            
+            <!-- first_name -->
+            <div class="mb-3">
+              <label class="form-label" for="{{ form.first_name.id_for_label }}">
+                {{ form.first_name.label }}
+              </label>
+              {{ form.first_name|addclass:"form-control" }}
+              {% if form.first_name.errors %}
+                <div class="text-danger">{{ form.first_name.errors }}</div>
+              {% endif %}
+            </div>
+
+            <!-- last_name -->
+            <div class="mb-3">
+              <label class="form-label" for="{{ form.last_name.id_for_label }}">
+                {{ form.last_name.label }}
+              </label>
+              {{ form.last_name|addclass:"form-control" }}
+            </div>
+
+            <!-- email -->
+            <div class="mb-3">
+              <label class="form-label" for="{{ form.email.id_for_label }}">
+                {{ form.email.label }}
+              </label>
+              {{ form.email|addclass:"form-control" }}
+              {% if form.email.errors %}
+                <div class="text-danger">{{ form.email.errors }}</div>
+              {% endif %}
+            </div>
+          </fieldset>
+
+          <!-- ============= Permisos y Staff ============= -->
+          <fieldset class="border p-3 mb-3">
+            <legend class="fs-15 fw-semibold">Permisos</legend>
+
+            <!-- is_active -->
+            <div class="form-check form-switch mb-2">
+              {{ form.is_active }}
+              <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
+                {{ form.is_active.label }}
+              </label>
+              {% if form.is_active.help_text %}
+                <div class="form-text text-muted">
+                  {{ form.is_active.help_text }}
+                </div>
+              {% endif %}
+            </div>
+
+            <!-- is_staff -->
+            <div class="form-check form-switch mb-2">
+              {{ form.is_staff }}
+              <label class="form-check-label" for="{{ form.is_staff.id_for_label }}">
+                {{ form.is_staff.label }}
+              </label>
+              {% if form.is_staff.help_text %}
+                <div class="form-text text-muted">
+                  {{ form.is_staff.help_text }}
+                </div>
+              {% endif %}
+            </div>
+
+            <!-- is_superuser -->
+            <div class="form-check form-switch mb-4">
+              {{ form.is_superuser }}
+              <label class="form-check-label" for="{{ form.is_superuser.id_for_label }}">
+                {{ form.is_superuser.label }}
+              </label>
+              {% if form.is_superuser.help_text %}
+                <div class="form-text text-muted">
+                  {{ form.is_superuser.help_text }}
+                </div>
+              {% endif %}
+            </div>
+
+            <!-- Grupos (doble lista) -->
+            <div class="row mb-4">
+              <div class="col-12 mb-2">
+                <strong>Grupos</strong>
+              </div>
+
+              <!-- Grupos disponibles -->
+              <div class="col-md-5">
+                <label class="form-label">Grupos Disponibles</label>
+                <select id="availableGroups" name="available_groups" multiple class="form-select" style="height: 180px;">
+                  {% for g in available_groups %}
+                    <option value="{{ g.id }}">{{ g.name }}</option>
+                  {% endfor %}
+                </select>
+                <button type="button" class="btn btn-light btn-sm mt-2" id="selectAllGroups">Seleccionar todos</button>
+              </div>
+
+              <!-- Botones centrales -->
+              <div class="col-md-2 d-flex flex-column align-items-center justify-content-center">
+                <button type="button" class="btn btn-outline-secondary mb-2" id="addGroupBtn">&gt;</button>
+                <button type="button" class="btn btn-outline-secondary" id="removeGroupBtn">&lt;</button>
+              </div>
+
+              <!-- Grupos asignados -->
+              <div class="col-md-5">
+                <label class="form-label">Grupos Elegidos</label>
+                <select id="assignedGroups" name="assigned_groups" multiple class="form-select" style="height: 180px;">
+                  {% for g in assigned_groups %}
+                    <option value="{{ g.id }}">{{ g.name }}</option>
+                  {% endfor %}
+                </select>
+                <button type="button" class="btn btn-light btn-sm mt-2" id="removeAllGroups">Eliminar todos</button>
+              </div>
+            </div>
+
+            <!-- Permisos (doble lista) -->
+            <div class="row">
+              <div class="col-12 mb-2">
+                <strong>Permisos de Usuario</strong>
+              </div>
+
+              <!-- Permisos disponibles -->
+              <div class="col-md-5">
+                <label class="form-label">Permisos Disponibles</label>
+                <select id="availablePerms" multiple class="form-select" style="height: 180px;">
+                  {% for p in available_perms %}
+                    <option value="{{ p.id }}">{{ p.name }}</option>
+                  {% endfor %}
+                </select>
+                <button type="button" class="btn btn-light btn-sm mt-2" id="selectAllPerms">Seleccionar todos</button>
+              </div>
+
+              <!-- Botones centrales -->
+              <div class="col-md-2 d-flex flex-column align-items-center justify-content-center">
+                <button type="button" class="btn btn-outline-secondary mb-2" id="addPermBtn">&gt;</button>
+                <button type="button" class="btn btn-outline-secondary" id="removePermBtn">&lt;</button>
+              </div>
+
+              <!-- Permisos asignados -->
+              <div class="col-md-5">
+                <label class="form-label">Permisos Elegidos</label>
+                <select id="assignedPerms" name="assigned_perms" multiple class="form-select" style="height: 180px;">
+                  {% for p in assigned_perms %}
+                    <option value="{{ p.id }}">{{ p.name }}</option>
+                  {% endfor %}
+                </select>
+                <button type="button" class="btn btn-light btn-sm mt-2" id="removeAllPerms">Eliminar todos</button>
+              </div>
+            </div>
+
+            <hr class="my-3" />
+            <p class="text-muted">
+              Permisos específicos para el usuario. Mantenga presionado 
+              <kbd>Control</kbd> o <kbd>Command</kbd> en Mac para seleccionar múltiples ítems.
+            </p>
+          </fieldset>
+
+          <!-- ============= 4. Fechas importantes ============= -->
+          <fieldset class="border p-3 mb-3">
+            <legend class="fs-15 fw-semibold">Fechas Importantes</legend>
+            <div class="mb-2">
+              <label class="form-label">Último inicio de sesión:</label>
+              <p class="form-control-plaintext">{{ user_obj.last_login|date:"d/m/Y H:i" }}</p>
+            </div>
+            <div class="mb-2">
+              <label class="form-label">Fecha de alta:</label>
+              <p class="form-control-plaintext">{{ user_obj.date_joined|date:"d/m/Y H:i" }}</p>
+            </div>
+          </fieldset>
+
+          <!-- ============= Botones finales ============= -->
+          <div class="text-end">
+            <button type="submit" class="btn btn-primary">Guardar</button>
+            <!-- Ejemplo: Botón Eliminar -->
+            <a href="{% url 'delete_user' user_obj.id %}" class="btn btn-danger ms-2">Eliminar</a>
+          </div>
+        </form>
+      </div><!-- end card-body -->
+    </div><!-- end card -->
+  </div><!-- end col -->
+</div><!-- end row -->
+{% endblock content %}
+
+{% block specific_js %}
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  // --- GRUPOS ---
+  const availableGroups = document.getElementById("availableGroups");
+  const assignedGroups = document.getElementById("assignedGroups");
+
+  document.getElementById("addGroupBtn").addEventListener("click", function() {
+    moveSelected(availableGroups, assignedGroups);
+  });
+  document.getElementById("removeGroupBtn").addEventListener("click", function() {
+    moveSelected(assignedGroups, availableGroups);
+  });
+  document.getElementById("selectAllGroups").addEventListener("click", function() {
+    moveAll(availableGroups, assignedGroups);
+  });
+  document.getElementById("removeAllGroups").addEventListener("click", function() {
+    moveAll(assignedGroups, availableGroups);
+  });
+
+  // --- PERMISOS ---
+  const availablePerms = document.getElementById("availablePerms");
+  const assignedPerms = document.getElementById("assignedPerms");
+
+  document.getElementById("addPermBtn").addEventListener("click", function() {
+    moveSelected(availablePerms, assignedPerms);
+  });
+  document.getElementById("removePermBtn").addEventListener("click", function() {
+    moveSelected(assignedPerms, availablePerms);
+  });
+  document.getElementById("selectAllPerms").addEventListener("click", function() {
+    moveAll(availablePerms, assignedPerms);
+  });
+  document.getElementById("removeAllPerms").addEventListener("click", function() {
+    moveAll(assignedPerms, availablePerms);
+  });
+
+  // Funciones de ayuda
+  function moveSelected(sourceSelect, targetSelect) {
+    [...sourceSelect.options].forEach(opt => {
+      if (opt.selected) {
+        targetSelect.appendChild(opt);
+      }
+    });
+  }
+
+  function moveAll(sourceSelect, targetSelect) {
+    [...sourceSelect.options].forEach(opt => {
+      targetSelect.appendChild(opt);
+    });
+  }
+});
+</script>
+{% endblock specific_js %}
+
+
+

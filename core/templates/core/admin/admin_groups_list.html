@@ -1,0 +1,82 @@
+{% extends 'core/dashboard.html' %}
+{% load static %}
+{% load custom_tags %} 
+
+{% block specific_css %}
+<!-- Datatables css -->
+<link href="{% static 'dist/assets/vendor/datatables.net-bs5/css/dataTables.bootstrap5.min.css' %}" rel="stylesheet" type="text/css" />
+<link href="{% static 'dist/assets/vendor/datatables.net-responsive-bs5/css/responsive.bootstrap5.min.css' %}" rel="stylesheet" type="text/css" />
+<link href="{% static 'dist/assets/vendor/datatables.net-fixedcolumns-bs5/css/fixedColumns.bootstrap5.min.css' %}" rel="stylesheet" type="text/css" />
+<link href="{% static 'dist/assets/vendor/datatables.net-fixedheader-bs5/css/fixedHeader.bootstrap5.min.css' %}" rel="stylesheet" type="text/css" />
+<link href="{% static 'dist/assets/vendor/datatables.net-buttons-bs5/css/buttons.bootstrap5.min.css' %}" rel="stylesheet" type="text/css" />
+<link href="{% static 'dist/assets/vendor/datatables.net-select-bs5/css/select.bootstrap5.min.css' %}" rel="stylesheet" type="text/css" />
+{% endblock specific_css %}
+
+{% block title %}Grupos{% endblock title %}
+{% block title1 %}GlobalGes{% endblock title1 %}
+{% block title2 %}Configuración{% endblock title2 %}
+{% block title3 %}Grupos{% endblock title3 %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <!-- Encabezado con el estilo de Alternative Pagination -->
+            <div class="card-header">
+                <h4 class="header-title">Lista de Grupos</h4>
+                <p class="text-muted mb-0">
+                    Administra aquí la lista de grupos. Puedes crear nuevos grupos
+                    y editar o eliminar los existentes.
+                </p>
+                <a href="{% url 'create_group' %}" class="btn btn-primary mt-3">
+                    Crear Grupo
+                </a>
+            </div>
+
+            <!-- Cuerpo de la tarjeta con la tabla adaptada -->
+            <div class="card-body">
+                <table id="alternative-page-datatable" class="table table-striped dt-responsive nowrap w-100">
+                    <thead>
+                        <tr>
+                            <th>Nombre del Grupo</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for group in groups %}
+                        <tr>
+                            <td>{{ group.name }}</td>
+                            <td>
+                                <a href="{% url 'edit_group' group.id %}" class="btn btn-sm btn-info">Editar</a>
+                                <a href="{% url 'delete_group' group.id %}" class="btn btn-sm btn-danger">Eliminar</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div> <!-- end card-body -->
+        </div> <!-- end card -->
+    </div> <!-- end col -->
+</div> <!-- end row -->
+{% endblock content %}
+
+{% block specific_js %}
+
+<!-- Datatables js -->
+<script src="{% static 'dist/assets/vendor/datatables.net/js/jquery.dataTables.min.js' %}"></script>
+<script src="{% static 'dist/assets/vendor/datatables.net-bs5/js/dataTables.bootstrap5.min.js' %}"></script>
+<script src="{% static 'dist/assets/vendor/datatables.net-responsive/js/dataTables.responsive.min.js' %}"></script>
+<script src="{% static 'dist/assets/vendor/datatables.net-responsive-bs5/js/responsive.bootstrap5.min.js' %}"></script>
+<script src="{% static 'dist/assets/vendor/datatables.net-fixedcolumns-bs5/js/fixedColumns.bootstrap5.min.js' %}"></script>
+<script src="{% static 'dist/assets/vendor/datatables.net-fixedheader/js/dataTables.fixedHeader.min.js' %}"></script>
+<script src="{% static 'dist/assets/vendor/datatables.net-buttons/js/dataTables.buttons.min.js' %}"></script>
+<script src="{% static 'dist/assets/vendor/datatables.net-buttons-bs5/js/buttons.bootstrap5.min.js' %}"></script>
+<script src="{% static 'dist/assets/vendor/datatables.net-buttons/js/buttons.html5.min.js' %}"></script>
+<script src="{% static 'dist/assets/vendor/datatables.net-buttons/js/buttons.flash.min.js' %}"></script>
+<script src="{% static 'dist/assets/vendor/datatables.net-buttons/js/buttons.print.min.js' %}"></script>
+<script src="{% static 'dist/assets/vendor/datatables.net-keytable/js/dataTables.keyTable.min.js' %}"></script>
+<script src="{% static 'dist/assets/vendor/datatables.net-select/js/dataTables.select.min.js' %}"></script>
+
+<!-- Datatable Demo App js -->
+<script src="{% static 'dist/assets/js/pages/datatable.init.js' %}"></script>
+{% endblock specific_js %}

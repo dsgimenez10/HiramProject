@@ -1,0 +1,163 @@
+{% extends 'core/dashboard.html' %}
+{% load static %}
+{% load custom_tags %} 
+
+{% block specific_css %}
+
+{% endblock specific_css %}
+
+{% block title %}Crear Usuario{% endblock title %}
+{% block title1 %}GlobalGes{% endblock title1 %}
+{% block title2 %}Configuración{% endblock title2 %}
+{% block title3 %}Crear Usuario{% endblock title3 %}
+
+{% block content %}
+<div class="row">
+  <div class="col-12">
+    <div class="card rounded-4">
+
+      <!-- Encabezado de la tarjeta -->
+      <div class="card-header">
+        <h4 class="header-title">Crear Usuario</h4>
+        <p class="text-muted mb-0">
+            Aquí puedes crear un nuevo usuario en el sistema.
+        </p>
+      </div>
+
+      <!-- Cuerpo de la tarjeta -->
+      <div class="card-body p-4">
+
+        {# Mensajes de error/exito (si usas django.contrib.messages) #}
+        {% if messages %}
+          {% for msg in messages %}
+            <div class="alert alert-info">{{ msg }}</div>
+          {% endfor %}
+        {% endif %}
+
+        <!-- Formulario para crear usuario -->
+        <form method="POST" class="row g-3">
+          {% csrf_token %}
+
+          <!-- Campo: Nombre de usuario -->
+          <div class="mb-3">
+            <label for="{{ form.username.id_for_label }}" class="form-label">
+              {{ form.username.label }}
+            </label>
+            {{ form.username|addclass:"form-control" }}
+
+            {# Texto de ayuda si existe #}
+            {% if form.username.help_text %}
+              <div class="form-text">
+                {{ form.username.help_text }}
+              </div>
+            {% endif %}
+
+            {# Errores de validación #}
+            {% if form.username.errors %}
+              <div class="text-danger">
+                {{ form.username.errors }}
+              </div>
+            {% endif %}
+          </div>
+
+          <!-- Campo: Correo electrónico -->
+          <div class="mb-3">
+            <label for="{{ form.email.id_for_label }}" class="form-label">
+              {{ form.email.label }}
+            </label>
+            {{ form.email|addclass:"form-control" }}
+
+            {% if form.email.help_text %}
+              <div class="form-text">
+                {{ form.email.help_text }}
+              </div>
+            {% endif %}
+
+            {% if form.email.errors %}
+              <div class="text-danger">
+                {{ form.email.errors }}
+              </div>
+            {% endif %}
+          </div>
+
+          <!-- Campo: Es staff (switch) -->
+          <div class="mb-3">
+            <label for="{{ form.is_staff.id_for_label }}" class="form-label">
+              {{ form.is_staff.label }}
+            </label>
+
+            <div class="form-check form-switch">
+              {{ form.is_staff }} 
+            </div>
+
+            {% if form.is_staff.help_text %}
+              <div class="form-text">
+                {{ form.is_staff.help_text }}
+              </div>
+            {% endif %}
+
+            {% if form.is_staff.errors %}
+              <div class="text-danger">
+                {{ form.is_staff.errors }}
+              </div>
+            {% endif %}
+          </div>
+
+          <!-- Campo: Password -->
+          <div class="mb-3">
+            <label for="{{ form.password.id_for_label }}" class="form-label">
+              {{ form.password.label|default:"Contraseña" }}
+            </label>
+            {{ form.password|addclass:"form-control" }}
+
+            {% if form.password.help_text %}
+              <div class="form-text">
+                {{ form.password.help_text }}
+              </div>
+            {% endif %}
+
+            {% if form.password.errors %}
+              <div class="text-danger">
+                {{ form.password.errors }}
+              </div>
+            {% endif %}
+          </div>
+
+          <!-- Campo: Confirmar Password -->
+          <div class="mb-3">
+            <label for="{{ form.confirm_password.id_for_label }}" class="form-label">
+              {{ form.confirm_password.label|default:"Confirmar Contraseña" }}
+            </label>
+            {{ form.confirm_password|addclass:"form-control" }}
+
+            {% if form.confirm_password.help_text %}
+              <div class="form-text">
+                {{ form.confirm_password.help_text }}
+              </div>
+            {% endif %}
+
+            {% if form.confirm_password.errors %}
+              <div class="text-danger">
+                {{ form.confirm_password.errors }}
+              </div>
+            {% endif %}
+          </div>
+
+          <!-- Botón de Guardar -->
+          <div class="col-12">
+            <button type="submit" class="btn btn-primary">
+              Guardar
+            </button>
+          </div>
+        </form>
+        <!-- Fin del formulario -->
+
+      </div><!-- end card-body -->
+    </div><!-- end card -->
+  </div><!-- end col -->
+</div><!-- end row -->
+{% endblock content %}
+
+{% block specific_js %}
+
+{% endblock specific_js %}

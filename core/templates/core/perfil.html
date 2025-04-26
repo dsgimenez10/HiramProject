@@ -1,0 +1,320 @@
+{% extends 'core/dashboard.html' %}
+{% load static %}
+
+{% block specific_css %}
+  
+{% endblock specific_css %}
+
+{% block title %}Perfil!{% endblock %}
+
+{% block title1 %}GlobalGes{% endblock %}
+{% block title2 %}Perfil{% endblock %}
+{% block title3 %}Bienvenido!{% endblock %}
+
+
+{% block content %}
+<!-- ================================================ -->
+<!-- 1. Card Superior: Portada + Avatar + Info Usuario -->
+<!-- ================================================ -->
+<div class="card rounded-4 mb-4">
+  <div class="card-body p-4">
+    <div class="position-relative mb-5">
+      <!-- Imagen de portada 
+      <img src="{% static 'assets/images/UsersPortal.jpg' %}"
+           class="img-fluid rounded-4 shadow"
+           alt="Imagen de portada">-->
+      
+      <!-- Imagen de perfil -->
+      <div class="profile-avatar position-absolute top-100 start-50 translate-middle">
+        <img src="{% if perfil.imagen_usuario %}{{ perfil.imagen_usuario.url }}{% else %}{% static 'assets/images/avatars/01.png' %}{% endif %}"
+             class="img-fluid rounded-circle p-1 bg-grd-danger shadow"
+             width="170" height="170"
+             alt="Imagen de Perfil">
+      </div>
+    </div>
+    
+    <!-- Información básica -->
+    <div class="profile-info pt-5 d-flex align-items-center justify-content-between">
+      <div>
+        <h3>{{ perfil.nombres }} {{ perfil.apellido }}</h3>
+        <p class="mb-0">
+          {{ perfil.rol }} <br>
+          {{ perfil.ciudad }}, {{ perfil.pais }}<br>
+          {{ perfil.estado }}
+        </p>
+        <p class="mb-0">{{ perfil.telefono }}</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================================================ -->
+<!-- 2. Sección con Pestañas: "Mis Datos" y "Editar perfil" -->
+<!-- ================================================ -->
+<div class="row">
+  <div class="col-sm-12">
+    <div class="card p-0">
+      <div class="card-body p-0">
+        <div class="profile-content">
+          <!-- Nav de pestañas -->
+          <ul class="nav nav-underline nav-justified gap-0">
+            <!-- Pestaña 1: Mis datos -->
+            <li class="nav-item">
+              <a class="nav-link active"
+                 data-bs-toggle="tab"
+                 data-bs-target="#mis-datos"
+                 role="tab"
+                 aria-controls="mis-datos"
+                 aria-selected="true">
+                 Mis datos
+              </a>
+            </li>
+
+            <!-- Pestaña 2: Editar perfil -->
+            <li class="nav-item">
+              <a class="nav-link"
+                 data-bs-toggle="tab"
+                 data-bs-target="#edit-profile"
+                 role="tab"
+                 aria-controls="edit-profile"
+                 aria-selected="false">
+                 Editar perfil
+              </a>
+            </li>
+          </ul>
+
+          <!-- Contenido de cada pestaña -->
+          <div class="tab-content m-0 p-4">
+
+            <!-- TAB 1: Mis datos -->
+            <div class="tab-pane active"
+                 id="mis-datos"
+                 role="tabpanel">
+              <div class="profile-desk">
+                <h5 class="fs-17 text-dark mb-3">Mis datos</h5>
+                <table class="table table-condensed mb-0 border-top">
+                  <tbody>
+                    <tr>
+                      <th scope="row">Nombre</th>
+                      <td>{{ perfil.nombres }} {{ perfil.apellido }}</td>
+                    </tr>
+                    <tr>
+                      <th scope="row">Email</th>
+                      <td>{{ perfil.email }}</td>
+                    </tr>
+                    <tr>
+                      <th scope="row">Teléfono</th>
+                      <td>{{ perfil.telefono }}</td>
+                    </tr>
+                    <tr>
+                      <th scope="row">Fecha de Nacimiento</th>
+                      <td>{{ perfil.fecha_nacimiento|date:'d/m/Y' }}</td>
+                    </tr>
+                    <tr>
+                      <th scope="row">País</th>
+                      <td>{{ perfil.pais }}</td>
+                    </tr>
+                    <tr>
+                      <th scope="row">Ciudad</th>
+                      <td>{{ perfil.ciudad }}</td>
+                    </tr>
+                    <tr>
+                      <th scope="row">Estado</th>
+                      <td>{{ perfil.estado }}</td>
+                    </tr>
+                    <tr>
+                      <th scope="row">Código Postal</th>
+                      <td>{{ perfil.codigo_postal }}</td>
+                    </tr>
+                    <tr>
+                      <th scope="row">Dirección</th>
+                      <td>{{ perfil.direccion }}</td>
+                    </tr>
+                    <tr>
+                      <th scope="row">Idioma</th>
+                      <td>{{ perfil.lenguaje }}</td>
+                    </tr>
+                    <tr>
+                      <th scope="row">Rol</th>
+                      <td>{{ perfil.rol }}</td>
+                    </tr>
+                    <tr>
+                      <th scope="row">Instagram</th>
+                      <td>
+                        <a href="{{ perfil.instagram }}" target="_blank">
+                          {{ perfil.instagram }}
+                        </a>
+                      </td>
+                    </tr>
+                    <tr>
+                      <th scope="row">Facebook</th>
+                      <td>
+                        <a href="{{ perfil.facebook }}" target="_blank">
+                          {{ perfil.facebook }}
+                        </a>
+                      </td>
+                    </tr>
+                    <tr>
+                      <th scope="row">LinkedIn</th>
+                      <td>
+                        <a href="{{ perfil.linkedin }}" target="_blank">
+                          {{ perfil.linkedin }}
+                        </a>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div> <!-- end profile-desk -->
+            </div> <!-- end #mis-datos -->
+
+            <!-- TAB 2: Editar perfil -->
+            <div class="tab-pane"
+                 id="edit-profile"
+                 role="tabpanel">
+              <!-- El formulario original -->
+              <div class="card rounded-4 border-top border-4 border-primary border-gradient-1">
+                <div class="card-body p-4">
+                  <h5 class="mb-4 fw-bold">Editar Perfil</h5>
+                  <form class="row g-4"
+                        method="post"
+                        enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <!-- Información básica -->
+                    <div class="col-md-6">
+                      <label for="input1" class="form-label">Nombre</label>
+                      <input type="text" class="form-control" id="input1"
+                             name="nombres" placeholder="Nombre"
+                             value="{{ perfil.nombres }}">
+                    </div>
+                    <div class="col-md-6">
+                      <label for="input2" class="form-label">Apellido</label>
+                      <input type="text" class="form-control" id="input2"
+                             name="apellido" placeholder="Apellido"
+                             value="{{ perfil.apellido }}">
+                    </div>
+                    <div class="col-md-12">
+                      <label for="input3" class="form-label">Teléfono</label>
+                      <input type="text" class="form-control" id="input3"
+                             name="telefono" placeholder="Teléfono"
+                             value="{{ perfil.telefono }}">
+                    </div>
+                    <div class="col-md-12">
+                      <label for="input4" class="form-label">Correo Electrónico</label>
+                      <input type="email" class="form-control" id="input4"
+                             name="email" placeholder="Correo Electrónico"
+                             value="{{ perfil.email }}">
+                    </div>
+                    <div class="col-md-12">
+                      <label for="input6" class="form-label">Fecha de Nacimiento</label>
+                      <input type="date" class="form-control" id="input6"
+                             name="fecha_nacimiento"
+                             value="{{ perfil.fecha_nacimiento|date:'Y-m-d' }}">
+                    </div>
+                    
+                    <!-- Ubicación -->
+                    <div class="col-md-12">
+                      <label for="input7" class="form-label">País</label>
+                      <input type="text" class="form-control" id="input7"
+                             name="pais" placeholder="País"
+                             value="{{ perfil.pais }}">
+                    </div>
+                    <div class="col-md-6">
+                      <label for="input8" class="form-label">Ciudad</label>
+                      <input type="text" class="form-control" id="input8"
+                             name="ciudad" placeholder="Ciudad"
+                             value="{{ perfil.ciudad }}">
+                    </div>
+                    <div class="col-md-4">
+                      <label for="input9" class="form-label">Estado</label>
+                      <input type="text" class="form-control" id="input9"
+                             name="estado" placeholder="Estado"
+                             value="{{ perfil.estado }}">
+                    </div>
+                    <div class="col-md-2">
+                      <label for="input10" class="form-label">Código Postal</label>
+                      <input type="text" class="form-control" id="input10"
+                             name="codigo_postal" placeholder="Código Postal"
+                             value="{{ perfil.codigo_postal }}">
+                    </div>
+                    <div class="col-md-12">
+                      <label for="input11" class="form-label">Dirección</label>
+                      <textarea class="form-control" id="input11"
+                                name="direccion" placeholder="Dirección ..."
+                                rows="4">{{ perfil.direccion }}</textarea>
+                    </div>
+                    
+                    <!-- Imagen de perfil -->
+                    <div class="col-md-12">
+                      <label for="profile_image" class="form-label">Imagen Actual</label><br>
+                      <img src="{{ perfil.imagen_usuario.url }}"
+                           alt="Imagen de Perfil"
+                           class="img-thumbnail mb-3"
+                           style="max-width: 150px;">
+                      <input type="file" class="form-control" id="profile_image"
+                             name="imagen_usuario">
+                    </div>
+                    
+                    <!-- Idioma y Rol -->
+                    <div class="col-md-6">
+                      <label for="language" class="form-label">Idioma</label>
+                      <input type="text" class="form-control" id="language"
+                             name="lenguaje" placeholder="Idioma"
+                             value="{{ perfil.lenguaje }}">
+                    </div>
+                    <div class="col-md-6">
+                      <label for="role" class="form-label">Rol</label>
+                      <select id="role" name="rol" class="form-select">
+                        <option value="user" {% if perfil.rol == "user" %}selected{% endif %}>Usuario</option>
+                        <option value="admin" {% if perfil.rol == "admin" %}selected{% endif %}>Administrador</option>
+                      </select>
+                    </div>
+                    
+                    <!-- Redes sociales -->
+                    <div class="col-md-12">
+                      <label for="instagram" class="form-label">Instagram</label>
+                      <input type="url" class="form-control" id="instagram"
+                             name="instagram" placeholder="URL de Instagram"
+                             value="{{ perfil.instagram }}">
+                    </div>
+                    <div class="col-md-12">
+                      <label for="facebook" class="form-label">Facebook</label>
+                      <input type="url" class="form-control" id="facebook"
+                             name="facebook" placeholder="URL de Facebook"
+                             value="{{ perfil.facebook }}">
+                    </div>
+                    <div class="col-md-12">
+                      <label for="linkedin" class="form-label">LinkedIn</label>
+                      <input type="url" class="form-control" id="linkedin"
+                             name="linkedin" placeholder="URL de LinkedIn"
+                             value="{{ perfil.linkedin }}">
+                    </div>
+                    
+                    <!-- Botones -->
+                    <div class="col-md-12">
+                      <div class="d-md-flex d-grid align-items-center gap-3">
+                        <button type="submit" class="btn btn-primary px-4">
+                          Actualizar Perfil
+                        </button>
+                        <button type="reset" class="btn btn-light px-4">
+                          Restablecer
+                        </button>
+                      </div>
+                    </div>
+                  </form>
+                </div> <!-- end card-body -->
+              </div>
+            </div> <!-- end #edit-profile -->
+
+          </div> <!-- end .tab-content -->
+        </div> <!-- end .profile-content -->
+      </div> <!-- end .card-body -->
+    </div> <!-- end .card -->
+  </div> <!-- end col-sm-12 -->
+</div> <!-- end row -->
+
+{% endblock content %}
+
+{% block specific_js %}
+  
+{% endblock specific_js %}

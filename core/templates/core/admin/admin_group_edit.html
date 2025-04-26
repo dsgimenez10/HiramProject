@@ -1,0 +1,184 @@
+{% extends 'core/dashboard.html' %}
+{% load static %}
+
+{% block specific_css %}
+{% endblock specific_css %}
+
+{% block title %}Editar Grupo{% endblock title %}
+{% block title1 %}GlobalGes{% endblock title1 %}
+{% block title2 %}Configuración{% endblock title2 %}
+{% block title3 %}Grupos{% endblock title3 %}
+
+{% block content %}
+<div class="row">
+  <div class="col-12">
+    <div class="card rounded-4">
+
+      <!-- Encabezado de la tarjeta -->
+      <div class="card-header">
+        <h4 class="header-title">Editar Grupo: {{ group_obj.name }}</h4>
+        <p class="text-muted mb-0">
+          Modifica el nombre del grupo y ajusta sus permisos.
+        </p>
+      </div>
+
+      <!-- Cuerpo de la tarjeta -->
+      <div class="card-body p-4">
+        <form method="POST" id="groupForm">
+          {% csrf_token %}
+
+          <!-- Nombre del Grupo (prellenado con group_obj.name) -->
+          <div class="mb-3">
+            <label for="groupName" class="form-label">Nombre del Grupo</label>
+            <input type="text" name="name" id="groupName" class="form-control" value="{{ group_obj.name }}" required>
+          </div>
+
+          <div class="row">
+            <!-- Permisos disponibles (col-5) -->
+            <div class="col-md-5">
+              <label class="fw-bold">Permisos Disponibles</label>
+              <!-- Campo de texto para filtrar PERMISOS DISPONIBLES -->
+              <input type="text" 
+                     id="filterAvailableInput"
+                     class="form-control mb-2"
+                     placeholder="Filtrar permisos...">
+              
+              <select id="availablePermissions" multiple class="form-select" style="height: 250px;">
+                {% for perm in all_permissions %}
+                  {% if perm not in group_obj.permissions.all %}
+                    <option value="{{ perm.id }}">{{ perm.name }}</option>
+                  {% endif %}
+                {% endfor %}
+              </select>
+
+              <div class="d-flex justify-content-between mt-2">
+                <button type="button" class="btn btn-light btn-sm" id="selectAllBtn">
+                  Seleccionar todos
+                </button>
+              </div>
+            </div>
+
+            <!-- Botones centrales para mover permisos -->
+            <div class="col-md-2 d-flex flex-column align-items-center justify-content-center">
+              <button type="button" id="addBtn" class="btn btn-light btn-sm mb-2">&gt;</button>
+              <button type="button" id="removeBtn" class="btn btn-light btn-sm mb-2">&lt;</button>
+            </div>
+            
+            <!-- Permisos asignados (col-5) -->
+            <div class="col-md-5">
+              <label class="fw-bold">Permisos Asignados</label>
+              <!-- Campo de texto para filtrar PERMISOS ASIGNADOS -->
+              <input type="text"
+                     id="filterAssignedInput"
+                     class="form-control mb-2"
+                     placeholder="Filtrar permisos...">
+
+              <select id="assignedPermissions" multiple class="form-select" style="height: 250px;">
+                {% for perm in group_obj.permissions.all %}
+                  <option value="{{ perm.id }}" selected>{{ perm.name }}</option>
+                {% endfor %}
+              </select>
+
+              <div class="d-flex justify-content-between mt-2">
+                <button type="button" class="btn btn-light btn-sm" id="removeAllBtn">
+                  Eliminar todos
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Campo oculto donde guardaremos los IDs de permisos asignados -->
+          <input type="hidden" name="permissions" id="permissionsInput" />
+
+          <!-- Botones finales -->
+          <div class="mt-4">
+            <button type="submit" class="btn btn-primary">Guardar</button>
+          </div>
+        </form>
+      </div><!-- end card-body -->
+    </div><!-- end card -->
+  </div><!-- end col -->
+</div><!-- end row -->
+{% endblock content %}
+
+{% block specific_js %}
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  const addBtn = document.getElementById("addBtn");
+  const removeBtn = document.getElementById("removeBtn");
+  const selectAllBtn = document.getElementById("selectAllBtn");
+  const removeAllBtn = document.getElementById("removeAllBtn");
+
+  const availableSelect = document.getElementById("availablePermissions");
+  const assignedSelect = document.getElementById("assignedPermissions");
+  const groupForm = document.getElementById("groupForm");
+  const permissionsInput = document.getElementById("permissionsInput");
+
+  // Filtros
+  const filterAvailableInput = document.getElementById("filterAvailableInput");
+  const filterAssignedInput = document.getElementById("filterAssignedInput");
+
+  // ---------- FUNCIONES DE FILTRO ----------
+  function filterSelect(selectElem, searchTerm) {
+    // Recorremos cada <option> y ocultamos o mostramos
+    [...selectElem.options].forEach(opt => {
+      const text = opt.text.toLowerCase();
+      if (text.includes(searchTerm.toLowerCase())) {
+        opt.style.display = "";
+      } else {
+        opt.style.display = "none";
+      }
+    });
+  }
+
+  // Al escribir en el filtro "Permisos Disponibles"
+  filterAvailableInput.addEventListener("input", function(e) {
+    filterSelect(availableSelect, e.target.value);
+  });
+
+  // Al escribir en el filtro "Permisos Asignados"
+  filterAssignedInput.addEventListener("input", function(e) {
+    filterSelect(assignedSelect, e.target.value);
+  });
+  // -----------------------------------------
+
+  // Mover permisos seleccionados: disponibles -> asignados
+  addBtn.addEventListener("click", function() {
+    [...availableSelect.options].forEach(opt => {
+      if (opt.selected) {
+        assignedSelect.appendChild(opt);
+      }
+    });
+  });
+
+  // Mover permisos seleccionados: asignados -> disponibles
+  removeBtn.addEventListener("click", function() {
+    [...assignedSelect.options].forEach(opt => {
+      if (opt.selected) {
+        availableSelect.appendChild(opt);
+      }
+    });
+  });
+
+  // Seleccionar todos (disponibles)
+  selectAllBtn.addEventListener("click", function() {
+    [...availableSelect.options].forEach(opt => {
+      assignedSelect.appendChild(opt);
+    });
+  });
+
+  // Eliminar todos (asignados)
+  removeAllBtn.addEventListener("click", function() {
+    [...assignedSelect.options].forEach(opt => {
+      availableSelect.appendChild(opt);
+    });
+  });
+
+  // Al enviar el formulario, recoger los IDs de permisos asignados
+  groupForm.addEventListener("submit", function() {
+    let assignedValues = [...assignedSelect.options].map(o => o.value);
+    permissionsInput.value = assignedValues.join(",");
+  });
+});
+</script>
+{% endblock specific_js %}

@@ -1,0 +1,24 @@
+{% extends 'core/dashboard.html' %}
+{% load static %}
+
+{% block title %}Eliminar Grupo{% endblock title %}
+{% block title1 %}GlobalGes{% endblock title1 %}
+{% block title2 %}Configuración{% endblock title2 %}
+{% block title3 %}Grupos{% endblock title3 %}
+
+{% block content %}
+<div class="row">
+  <div class="col-12">
+    <div class="card rounded-4">
+      <div class="card-body p-4">
+        <h5 class="mb-4 fw-bold">¿Deseas eliminar el grupo {{ group_obj.name }}?</h5>
+        <form method="POST">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-danger">Sí, eliminar</button>
+          <a href="{% url 'list_groups' %}" class="btn btn-secondary">Cancelar</a>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock content %}
