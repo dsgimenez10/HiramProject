@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from datetime import date
+from simple_history.models import HistoricalRecords
 
 class PerfilUsuario(models.Model):
     usuario = models.OneToOneField(User, on_delete=models.CASCADE, related_name='perfil')
@@ -29,6 +30,8 @@ class PerfilUsuario(models.Model):
     bio = models.TextField(blank=True, null=True)
     sitio_web = models.URLField(blank=True, null=True)
     fecha_registro = models.DateTimeField(auto_now_add=True)
+
+    history = HistoricalRecords()  # 👈 Historial de cambios
 
     def edad(self):
         if self.fecha_nacimiento:

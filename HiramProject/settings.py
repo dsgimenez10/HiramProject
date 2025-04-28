@@ -51,7 +51,13 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.humanize',
+    'simple_history',
+    'smart_selects',
+    'crispy_forms',
+    'crispy_bootstrap5',
     'core',
+    'catalogos',
 ]
 
 MIDDLEWARE = [
@@ -147,7 +153,10 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOGIN_REDIRECT_URL = '/dashboard/'
-LOGOUT_REDIRECT_URL = '/'  # Redirige a la página de inicio después de cerrar sesión
+LOGOUT_REDIRECT_URL = 'login'  # Redirige a la página de inicio después de cerrar sesión
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
+CRISPY_TEMPLATE_PACK = "bootstrap5"

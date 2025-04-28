@@ -1,0 +1,98 @@
+{% extends 'core/dashboard.html' %}
+{% load static %}
+{% load custom_tags %}
+
+{% block specific_css %}
+<!-- Datatables css -->
+<link href="{% static 'dist/assets/vendor/datatables.net-bs5/css/dataTables.bootstrap5.min.css' %}" rel="stylesheet" type="text/css" />
+<link href="{% static 'dist/assets/vendor/datatables.net-responsive-bs5/css/responsive.bootstrap5.min.css' %}" rel="stylesheet" type="text/css" />
+<link href="{% static 'dist/assets/vendor/datatables.net-fixedcolumns-bs5/css/fixedColumns.bootstrap5.min.css' %}" rel="stylesheet" type="text/css" />
+<link href="{% static 'dist/assets/vendor/datatables.net-fixedheader-bs5/css/fixedHeader.bootstrap5.min.css' %}" rel="stylesheet" type="text/css" />
+<link href="{% static 'dist/assets/vendor/datatables.net-buttons-bs5/css/buttons.bootstrap5.min.css' %}" rel="stylesheet" type="text/css" />
+<link href="{% static 'dist/assets/vendor/datatables.net-select-bs5/css/select.bootstrap5.min.css' %}" rel="stylesheet" type="text/css" />
+{% endblock specific_css %}
+
+{% block title %}Proyectos{% endblock title %}
+{% block title1 %}GlobalGes{% endblock title1 %}
+{% block title2 %}Gestión{% endblock title2 %}
+{% block title3 %}Proyectos{% endblock title3 %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="header-title">Lista de Proyectos</h4>
+                <p class="text-muted mb-0">Administra los proyectos. Puedes crear, editar o eliminar.</p>
+                <a href="{% url 'catalogos:agregar_proyecto' 0 %}" class="btn btn-primary mt-3">
+                    Crear Proyecto
+                </a>
+            </div>
+
+            <div class="card-body">
+                <table id="scroll-vertical-datatable" class="table table-striped nowrap w-100">
+                    <thead>
+                        <tr>
+                            <th>Nro</th>
+                            <th>Contacto</th>
+                            <th>Nombre</th>
+                            <th>Descripción</th>
+                            <th>Fecha Inicio</th>
+                            <th>Fecha Fin</th>
+                            <th>Estado</th>
+                            <th>Moneda</th>
+                            <th>Monto</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for proyecto in proyectos %}
+                        <tr>
+                            <td>{{ proyecto.id }}</td>
+                            <td>
+                                {% if proyecto.contacto %}
+                                    {{ proyecto.contacto.nombre }}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                            <td>{{ proyecto.nombre }}</td>
+                            <td>{{ proyecto.descripcion|default:"-" }}</td>
+                            <td>{{ proyecto.fecha_inicio }}</td>
+                            <td>{{ proyecto.fecha_fin|default:"-" }}</td>
+                            <td>{{ proyecto.estado }}</td>
+                            <td>{{ proyecto.moneda }}</td>
+                            <td>${{ proyecto.monto|floatformat:2 }}</td>
+                            <td>
+                                <a href="{% url 'catalogos:editar_proyecto' proyecto.contacto.id proyecto.id %}" class="btn btn-sm btn-info">Editar</a>
+                                <a href="{% url 'catalogos:eliminar_proyecto' proyecto.contacto.id proyecto.id %}" class="btn btn-sm btn-danger">Eliminar</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div> <!-- end card-body -->
+        </div> <!-- end card -->
+    </div> <!-- end col -->
+</div> <!-- end row -->
+{% endblock content %}
+
+{% block specific_js %}
+<!-- Datatables js -->
+<script src="{% static 'dist/assets/vendor/datatables.net/js/jquery.dataTables.min.js' %}"></script>
+<script src="{% static 'dist/assets/vendor/datatables.net-bs5/js/dataTables.bootstrap5.min.js' %}"></script>
+<script src="{% static 'dist/assets/vendor/datatables.net-responsive/js/dataTables.responsive.min.js' %}"></script>
+<script src="{% static 'dist/assets/vendor/datatables.net-responsive-bs5/js/responsive.bootstrap5.min.js' %}"></script>
+<script src="{% static 'dist/assets/vendor/datatables.net-fixedcolumns-bs5/js/fixedColumns.bootstrap5.min.js' %}"></script>
+<script src="{% static 'dist/assets/vendor/datatables.net-fixedheader/js/dataTables.fixedHeader.min.js' %}"></script>
+<script src="{% static 'dist/assets/vendor/datatables.net-buttons/js/dataTables.buttons.min.js' %}"></script>
+<script src="{% static 'dist/assets/vendor/datatables.net-buttons-bs5/js/buttons.bootstrap5.min.js' %}"></script>
+<script src="{% static 'dist/assets/vendor/datatables.net-buttons/js/buttons.html5.min.js' %}"></script>
+<script src="{% static 'dist/assets/vendor/datatables.net-buttons/js/buttons.flash.min.js' %}"></script>
+<script src="{% static 'dist/assets/vendor/datatables.net-buttons/js/buttons.print.min.js' %}"></script>
+<script src="{% static 'dist/assets/vendor/datatables.net-keytable/js/dataTables.keyTable.min.js' %}"></script>
+<script src="{% static 'dist/assets/vendor/datatables.net-select/js/dataTables.select.min.js' %}"></script>
+
+<!-- Datatable Demo App js -->
+<script src="{% static 'dist/assets/js/pages/datatable.init.js' %}"></script>
+{% endblock specific_js %}

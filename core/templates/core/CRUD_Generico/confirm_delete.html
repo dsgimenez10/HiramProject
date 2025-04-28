@@ -1,0 +1,47 @@
+
+{% extends 'core/dashboard.html' %}
+{% load static %}
+
+{% block specific_css %}
+
+{% endblock %}
+
+{% block content %}
+  <!--start main wrapper-->
+  <main class="main-wrapper">
+    <div class="main-content">
+      <!--breadcrumb-->
+				<div class="page-breadcrumb d-none d-sm-flex align-items-center mb-3">
+					<div class="breadcrumb-title pe-3">Eliminar</div>
+				</div>
+				<!--end breadcrumb-->
+      
+
+        <div class="row">
+            <div class="col-xl-6 mx-auto">
+                <div class="card">
+                    <div class="card-header px-4 py-3">
+                        <h5 class="mb-0">Formulario</h5>
+                    </div>
+                    <div class="card-body p-4">
+                        <form method="post" enctype="multipart/form-data" class="row g-3 needs-validation" novalidate>
+                            {% csrf_token %}
+                            <div class="card-body text-center">
+                              <p>¿Estás seguro de que deseas eliminar?</p> 
+                            </div>
+                            <button type="submit" class="btn btn-grd-danger px-4">Eliminar</button>
+                            <a href="javascript:history.back()" class="btn btn-grd-info px-4">Cancelar</a>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+  </main>
+  <!--end main wrapper-->
+{% endblock %}
+
+
+{% block specific_js %}
+  
+{% endblock %}

@@ -24,6 +24,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('logout/', auth_views.LogoutView.as_view(next_page='login'), name='logout'),
     path('', include('core.urls')),
+    path('', include('catalogos.urls')),
 ]
 
 # Esto permite servir archivos media en desarrollo

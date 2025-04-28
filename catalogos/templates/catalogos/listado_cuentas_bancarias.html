@@ -1,0 +1,83 @@
+{% extends 'core/dashboard.html' %}
+{% load static %}
+{% load custom_tags %}
+
+{% block specific_css %}
+<!-- Datatables css -->
+<link href="{% static 'dist/assets/vendor/datatables.net-bs5/css/dataTables.bootstrap5.min.css' %}" rel="stylesheet" type="text/css" />
+<link href="{% static 'dist/assets/vendor/datatables.net-responsive-bs5/css/responsive.bootstrap5.min.css' %}" rel="stylesheet" type="text/css" />
+<link href="{% static 'dist/assets/vendor/datatables.net-fixedcolumns-bs5/css/fixedColumns.bootstrap5.min.css' %}" rel="stylesheet" type="text/css" />
+<link href="{% static 'dist/assets/vendor/datatables.net-fixedheader-bs5/css/fixedHeader.bootstrap5.min.css' %}" rel="stylesheet" type="text/css" />
+<link href="{% static 'dist/assets/vendor/datatables.net-buttons-bs5/css/buttons.bootstrap5.min.css' %}" rel="stylesheet" type="text/css" />
+<link href="{% static 'dist/assets/vendor/datatables.net-select-bs5/css/select.bootstrap5.min.css' %}" rel="stylesheet" type="text/css" />
+{% endblock %}
+
+{% block title %}Cuentas Bancarias{% endblock %}
+{% block title1 %}GlobalGes{% endblock %}
+{% block title2 %}Gestión{% endblock %}
+{% block title3 %}Cuentas Bancarias{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="header-title">Lista de Cuentas Bancarias</h4>
+                <p class="text-muted mb-0">Administra las cuentas bancarias. Puedes crear, editar o eliminar.</p>
+                <a href="{% url 'catalogos:agregar_cuenta_bancaria' %}" class="btn btn-primary mt-3">
+                    Crear Cuenta Bancaria
+                </a>
+            </div>
+            <div class="card-body">
+                <table id="alternative-page-datatable" class="table table-striped dt-responsive nowrap w-100">
+                    <thead>
+                        <tr>
+                            <th>Nro</th>
+                            <th>Banco</th>
+                            <th>Número de Cuenta</th>
+                            <th>Saldo Actual</th>
+                            <th>Moneda</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for cuenta in cuentas_bancarias %}
+                        <tr>
+                            <td>{{ cuenta.id }}</td>
+                            <td>{{ cuenta.banco }}</td>
+                            <td>{{ cuenta.numero_cuenta }}</td>
+                            <td>{{ cuenta.saldo_actual }}</td>
+                            <td>{{ cuenta.moneda }}</td>
+                            <td>
+                                <a href="{% url 'catalogos:editar_cuenta_bancaria' cuenta.id %}" class="btn btn-sm btn-info">Editar</a>
+                                <a href="{% url 'catalogos:eliminar_cuenta_bancaria' cuenta.id %}" class="btn btn-sm btn-danger">Eliminar</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block specific_js %}
+<!-- Datatables js -->
+<script src="{% static 'dist/assets/vendor/datatables.net/js/jquery.dataTables.min.js' %}"></script>
+<script src="{% static 'dist/assets/vendor/datatables.net-bs5/js/dataTables.bootstrap5.min.js' %}"></script>
+<script src="{% static 'dist/assets/vendor/datatables.net-responsive/js/dataTables.responsive.min.js' %}"></script>
+<script src="{% static 'dist/assets/vendor/datatables.net-responsive-bs5/js/responsive.bootstrap5.min.js' %}"></script>
+<script src="{% static 'dist/assets/vendor/datatables.net-fixedcolumns-bs5/js/fixedColumns.bootstrap5.min.js' %}"></script>
+<script src="{% static 'dist/assets/vendor/datatables.net-fixedheader/js/dataTables.fixedHeader.min.js' %}"></script>
+<script src="{% static 'dist/assets/vendor/datatables.net-buttons/js/dataTables.buttons.min.js' %}"></script>
+<script src="{% static 'dist/assets/vendor/datatables.net-buttons-bs5/js/buttons.bootstrap5.min.js' %}"></script>
+<script src="{% static 'dist/assets/vendor/datatables.net-buttons/js/buttons.html5.min.js' %}"></script>
+<script src="{% static 'dist/assets/vendor/datatables.net-buttons/js/buttons.flash.min.js' %}"></script>
+<script src="{% static 'dist/assets/vendor/datatables.net-buttons/js/buttons.print.min.js' %}"></script>
+<script src="{% static 'dist/assets/vendor/datatables.net-keytable/js/dataTables.keyTable.min.js' %}"></script>
+<script src="{% static 'dist/assets/vendor/datatables.net-select/js/dataTables.select.min.js' %}"></script>
+
+<!-- Datatable Demo App js -->
+<script src="{% static 'dist/assets/js/pages/datatable.init.js' %}"></script>
+{% endblock %}

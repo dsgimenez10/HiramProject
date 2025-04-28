@@ -128,10 +128,16 @@
                                 <i class="ri-lock-password-line fs-18 align-middle me-1"></i>
                                 <span>Contraseña </span>
                             </a>
-                            <a href="{% url 'logout' %}" onclick="return confirm('¿Estás seguro de que deseas cerrar sesión?');" class="dropdown-item">
-                                <i class="ri-logout-box-line fs-18 align-middle me-1"></i>
-                                <span>Cerrar sesión</span>
+                            <!-- Formulario oculto de logout -->
+                            <form id="logout-form" action="{% url 'logout' %}" method="post" style="display: none;">
+                                {% csrf_token %}
+                            </form>
+
+                            <!-- Botón o enlace para logout con confirmación -->
+                            <a href="#" onclick="if(confirm('¿Estás seguro de que deseas cerrar sesión?')) { document.getElementById('logout-form').submit(); }" class="dropdown-item">
+                                <i class="ri-logout-box-line"></i> Cerrar Sesión
                             </a>
+                            
                         </div>
                     </li>
                 </ul>
@@ -172,6 +178,41 @@
                             <span> Dashboard </span>
                         </a>
                     </li>
+
+                    <!-- Menú "Catálogos" -->
+                    <li class="side-nav-item">
+                        <a data-bs-toggle="collapse" href="#sidebarCatalogos" aria-expanded="false" aria-controls="sidebarCatalogos" class="side-nav-link">
+                            <i class="ri-folders-line"></i>
+                            <span> Catálogos </span>
+                            <span class="menu-arrow"></span>
+                        </a>
+                        <div class="collapse" id="sidebarCatalogos">
+                            <ul class="side-nav-second-level">
+                                <li>
+                                    <a href="{% url 'catalogos:listado_proyectos' %}">
+                                        <i class="ri-file-list-3-line"></i> Proyectos
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{% url 'catalogos:listado_contactos' %}">
+                                        <i class="ri-contacts-book-line"></i> Contactos
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{% url 'catalogos:listado_cuentas' %}">
+                                        <i class="ri-bank-line"></i> Cuentas
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{% url 'catalogos:listado_cuentas_bancarias' %}">
+                                        <i class="ri-wallet-3-line"></i> Cuentas Bancarias
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+
+
                     
                     {% if user|has_admin_access %}
                     <!-- Menú "Usuarios" (solo para admin) -->

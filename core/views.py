@@ -25,6 +25,8 @@ from .forms import (
     UserCreateForm
 )
 
+from django.urls import NoReverseMatch, reverse
+
 def login_view(request):
     """
     Vista para iniciar sesión (login).
@@ -349,3 +351,76 @@ def delete_group(request, group_id):
         group.delete()
         return redirect('list_groups')
     return render(request, 'core/admin/admin_group_delete.html', {'group_obj': group})
+
+
+# Agregar - Editar form Simples --------------------------------------------------------------------------------------------------
+
+def agregar_editar_form(request, FormClass, template_name, redirect_url, instance=None, instance_id=None, model=None):
+    if instance_id and model:
+        instance = get_object_or_404(model, pk=instance_id)
+    
+    if request.method == 'POST':
+        form = FormClass(request.POST, request.FILES, instance=instance)
+        if form.is_valid():
+            form.save()
+             # Verifica si `redirect_url` necesita `instance_id`
+            try:
+                return redirect(redirect_url, request.FILES, instance_id)
+            except NoReverseMatch:
+                return redirect(redirect_url)
+    else:
+        form = FormClass(instance=instance)
+ 
+    return render(request, template_name, {'form': form, 'instance': instance})
+
+# Eliminar form Simples ---------------------------------------------------------------------------------------------------------
+
+def confirm_delete(request, model, redirect_url, id_contrato=None, instance_id=None, template_name='confirm_delete.html'):
+    instance = get_object_or_404(model, pk=instance_id)
+
+    if request.method == 'POST':
+        instance.delete()
+        messages.success(request, 'El registro ha sido eliminado correctamente.')
+        
+        # Intentar redirigir a una URL que puede necesitar instance_id
+        try:
+            if id_contrato:
+                return redirect(redirect_url, id_contrato)
+            else:
+                return redirect(redirect_url, instance_id)
+        except NoReverseMatch:
+            return redirect(redirect_url)
+    
+    # Captura la URL anterior o usa el valor por defecto
+    previous_url = request.META.get('HTTP_REFERER', redirect_url)
+    
+    return render(request, template_name, {'instance': instance, 'previous_url': previous_url})
+
+def agregar_editar_form_complejo(request, FormClass, template_name, redirect_url, instance=None, instance_id=None, id_contrato=None, model=None):
+    # Si se proporciona un `instance_id` y un `model`, recupera la instancia
+    if instance_id and model:
+        instance = get_object_or_404(model, pk=instance_id)
+    
+    if request.method == 'POST':
+        # Pasa `id_contrato` como parte del `kwargs` en el formulario
+        form = FormClass(request.POST, instance=instance, contrato=id_contrato)
+        if form.is_valid():
+            # Asignar `id_contrato` al objeto `pago` antes de guardarlo
+            modelo = form.save(commit=False)
+            if id_contrato:
+                modelo.id_contrato_id = id_contrato  # Asegúrate de asignar el id correcto al pago
+            modelo.save()
+            
+            # Redirigir usando `id_contrato` o `instance_id` si es necesario
+            try:
+                if id_contrato:
+                    return redirect(redirect_url, id_contrato)
+                else:
+                    return redirect(redirect_url, instance_id)
+            except NoReverseMatch:
+                return redirect(redirect_url)
+    else:
+        # En el caso de `GET`, también pasamos `id_contrato` al formulario
+        form = FormClass(instance=instance, contrato=id_contrato)
+ 
+    return render(request, template_name, {'form': form, 'instance': instance})
