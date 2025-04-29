@@ -2,7 +2,7 @@ from django.urls import path
 from .forms import ProyectoForm, ContactoForm, CuentasForm, CuentaBancariaForm
 from .models import Proyecto, Contacto, Cuentas, CuentaBancaria
 from .views import listado_proyectos, listado_contactos, listado_cuentas, listado_cuentas_bancarias
-from core.views import agregar_editar_form, confirm_delete, agregar_editar_form_complejo 
+from core.views import agregar_editar_form, confirm_delete
 
 
 
@@ -20,17 +20,17 @@ urlpatterns = [
     path('cuentas_bancarias/', listado_cuentas_bancarias, name='listado_cuentas_bancarias'),
 
     # PROYECTOS
-    path('proyectos/agregar/<int:id_contacto>/', 
+    path('proyectos/agregar/', 
          agregar_editar_form,
          name='agregar_proyecto',
          kwargs={'FormClass': ProyectoForm, 'template_name': template_name, 'redirect_url': 'catalogos:listado_proyectos'}
     ),
-    path('proyectos/editar/<int:id_contacto>/<int:instance_id>/', 
+    path('proyectos/editar/<int:instance_id>/', 
          agregar_editar_form,
          name='editar_proyecto',
          kwargs={'FormClass': ProyectoForm, 'template_name': template_name, 'redirect_url': 'catalogos:listado_proyectos', 'model': Proyecto}
     ),
-    path('proyectos/eliminar/<int:id_contacto>/<int:instance_id>/', 
+    path('proyectos/eliminar/<int:instance_id>/', 
          confirm_delete,
          name='eliminar_proyecto',
          kwargs={'model': Proyecto, 'redirect_url': 'catalogos:listado_proyectos', 'template_name': template_name_eliminar}

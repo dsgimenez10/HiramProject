@@ -1,0 +1,159 @@
+{% extends 'core/dashboard.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block specific_css %}
+<!-- Datatables css -->
+<link href="{% static 'dist/assets/vendor/datatables.net-bs5/css/dataTables.bootstrap5.min.css' %}" rel="stylesheet" type="text/css" />
+<link href="{% static 'dist/assets/vendor/datatables.net-responsive-bs5/css/responsive.bootstrap5.min.css' %}" rel="stylesheet" type="text/css" />
+<link href="{% static 'dist/assets/vendor/datatables.net-fixedcolumns-bs5/css/fixedColumns.bootstrap5.min.css' %}" rel="stylesheet" type="text/css" />
+<link href="{% static 'dist/assets/vendor/datatables.net-fixedheader-bs5/css/fixedHeader.bootstrap5.min.css' %}" rel="stylesheet" type="text/css" />
+<link href="{% static 'dist/assets/vendor/datatables.net-buttons-bs5/css/buttons.bootstrap5.min.css' %}" rel="stylesheet" type="text/css" />
+<link href="{% static 'dist/assets/vendor/datatables.net-select-bs5/css/select.bootstrap5.min.css' %}" rel="stylesheet" type="text/css" />
+{% endblock %}
+
+{% block title %}Saldos por Contacto{% endblock %}
+{% block title1 %}GlobalGes{% endblock %}
+{% block title2 %}Finanzas{% endblock %}
+{% block title3 %}Saldos por Contacto{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Totales Pesos -->
+    <div class="col-xxl-4 col-sm-6">
+        <div class="card widget-flat text-bg-success">
+            <div class="card-body">
+                <div class="float-end">
+                    <i class="ri-money-cny-box-line widget-icon"></i>
+                </div>
+                <h6 class="text-uppercase mt-0" title="Ingresos">Ingresos Totales (Pesos)</h6>
+                <h2 class="my-2">{{ ingresos_totales_pesos|floatformat:2|intcomma }}</h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xxl-4 col-sm-6">
+        <div class="card widget-flat text-bg-danger">
+            <div class="card-body">
+                <div class="float-end">
+                    <i class="ri-money-cny-box-line widget-icon"></i>
+                </div>
+                <h6 class="text-uppercase mt-0" title="Egresos">Egresos Totales (Pesos)</h6>
+                <h2 class="my-2">{{ egresos_totales_pesos|floatformat:2|intcomma }}</h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xxl-4 col-sm-6">
+        <div class="card widget-flat text-bg-primary">
+            <div class="card-body">
+                <div class="float-end">
+                    <i class="ri-money-cny-box-line widget-icon"></i>
+                </div>
+                <h6 class="text-uppercase mt-0" title="Saldo">Saldo (Pesos)</h6>
+                <h2 class="my-2">{{ saldo_total_pesos|floatformat:2|intcomma }}</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-3">
+    <!-- Totales Dólares -->
+    <div class="col-xxl-4 col-sm-6">
+        <div class="card widget-flat text-bg-success">
+            <div class="card-body">
+                <div class="float-end">
+                    <i class="ri-money-dollar-circle-line widget-icon"></i>
+                </div>
+                <h6 class="text-uppercase mt-0" title="Ingresos Dólares">Ingresos Totales (Dólares)</h6>
+                <h2 class="my-2">{{ ingresos_totales_dolares|floatformat:2|intcomma }}</h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xxl-4 col-sm-6">
+        <div class="card widget-flat text-bg-danger">
+            <div class="card-body">
+                <div class="float-end">
+                    <i class="ri-money-dollar-circle-line widget-icon"></i>
+                </div>
+                <h6 class="text-uppercase mt-0" title="Egresos Dólares">Egresos Totales (Dólares)</h6>
+                <h2 class="my-2">{{ egresos_totales_dolares|floatformat:2|intcomma }}</h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xxl-4 col-sm-6">
+        <div class="card widget-flat text-bg-primary">
+            <div class="card-body">
+                <div class="float-end">
+                    <i class="ri-money-dollar-circle-line widget-icon"></i>
+                </div>
+                <h6 class="text-uppercase mt-0" title="Saldo Dólares">Saldo (Dólares)</h6>
+                <h2 class="my-2">{{ saldo_total_dolares|floatformat:2|intcomma }}</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tabla -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="header-title">Detalle Saldos por Contacto</h4>
+            </div>
+            <div class="card-body">
+                <table id="scroll-horizontal-datatable" class="table table-striped nowrap w-100">
+                    <thead>
+                        <tr>
+                            <th>Contacto</th>
+                            <th>Ingresos (Pesos)</th>
+                            <th>Egresos (Pesos)</th>
+                            <th>Saldo (Pesos)</th>
+                            <th>Ingresos (Dólares)</th>
+                            <th>Egresos (Dólares)</th>
+                            <th>Saldo (Dólares)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in saldos_por_contacto %}
+                        <tr>
+                            <td>{{ item.contacto__nombre }}</td>
+                            <td class="text-end">{{ item.ingresos_pesos|floatformat:2|intcomma }}</td>
+                            <td class="text-end">{{ item.egresos_pesos|floatformat:2|intcomma }}</td>
+                            <td class="text-end">{{ item.saldo_pesos|floatformat:2|intcomma }}</td>
+                            <td class="text-end">{{ item.ingresos_dolares|floatformat:2|intcomma }}</td>
+                            <td class="text-end">{{ item.egresos_dolares|floatformat:2|intcomma }}</td>
+                            <td class="text-end">{{ item.saldo_dolares|floatformat:2|intcomma }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block specific_js %}
+<!-- Datatables js -->
+<script src="{% static 'dist/assets/vendor/datatables.net/js/jquery.dataTables.min.js' %}"></script>
+<script src="{% static 'dist/assets/vendor/datatables.net-bs5/js/dataTables.bootstrap5.min.js' %}"></script>
+<script src="{% static 'dist/assets/vendor/datatables.net-responsive/js/dataTables.responsive.min.js' %}"></script>
+<script src="{% static 'dist/assets/vendor/datatables.net-responsive-bs5/js/responsive.bootstrap5.min.js' %}"></script>
+<script src="{% static 'dist/assets/vendor/datatables.net-fixedcolumns-bs5/js/fixedColumns.bootstrap5.min.js' %}"></script>
+<script src="{% static 'dist/assets/vendor/datatables.net-fixedheader/js/dataTables.fixedHeader.min.js' %}"></script>
+<script src="{% static 'dist/assets/vendor/datatables.net-buttons/js/dataTables.buttons.min.js' %}"></script>
+<script src="{% static 'dist/assets/vendor/datatables.net-buttons-bs5/js/buttons.bootstrap5.min.js' %}"></script>
+<script src="{% static 'dist/assets/vendor/datatables.net-buttons/js/buttons.html5.min.js' %}"></script>
+<script src="{% static 'dist/assets/vendor/datatables.net-buttons/js/buttons.flash.min.js' %}"></script>
+<script src="{% static 'dist/assets/vendor/datatables.net-buttons/js/buttons.print.min.js' %}"></script>
+<script src="{% static 'dist/assets/vendor/datatables.net-keytable/js/dataTables.keyTable.min.js' %}"></script>
+<script src="{% static 'dist/assets/vendor/datatables.net-select/js/dataTables.select.min.js' %}"></script>
+
+<!-- Datatable Init -->
+<script src="{% static 'dist/assets/js/pages/datatable.init.js' %}"></script>
+{% endblock %}
+
+

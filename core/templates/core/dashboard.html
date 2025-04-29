@@ -174,7 +174,6 @@
                     <li class="side-nav-item">
                         <a href="{% url 'dashboard_view' %}" class="side-nav-link">
                             <i class="ri-dashboard-3-line"></i>
-                            <span class="badge bg-success float-end">9+</span>
                             <span> Dashboard </span>
                         </a>
                     </li>
@@ -211,6 +210,73 @@
                             </ul>
                         </div>
                     </li>
+
+                    <!-- Menú "Transacciones" -->
+                    <li class="side-nav-item">
+                        <a data-bs-toggle="collapse" href="#sidebarTransacciones" aria-expanded="false" aria-controls="sidebarTransacciones" class="side-nav-link">
+                            <i class="ri-exchange-dollar-line"></i>
+                            <span> Transacciones </span>
+                            <span class="menu-arrow"></span>
+                        </a>
+                        <div class="collapse" id="sidebarTransacciones">
+                            <ul class="side-nav-second-level">
+                                <li>
+                                    <a href="{% url 'transacciones:transaccion' %}">
+                                        <i class="ri-money-dollar-circle-line"></i> Transaccion
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+
+                    <!-- Menú "Reportes" -->
+                    <li class="side-nav-item">
+                        <a data-bs-toggle="collapse" href="#sidebarReportes" aria-expanded="false" aria-controls="sidebarReportes" class="side-nav-link">
+                            <i class="ri-bar-chart-box-line"></i>
+                            <span> Reportes </span>
+                            <span class="menu-arrow"></span>
+                        </a>
+                        <div class="collapse" id="sidebarReportes">
+                            <ul class="side-nav-second-level">
+                                <li>
+                                    <a href="{% url 'transacciones:libro_diario' %}">
+                                        <i class="ri-book-2-line"></i> Libro Diario
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{% url 'transacciones:resumen_por_proyecto' %}">
+                                        <i class="ri-briefcase-4-line"></i> Resumen por Proyecto
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{% url 'transacciones:saldos_por_contacto' %}">
+                                        <i class="ri-contacts-line"></i> Saldos por Contacto
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{% url 'transacciones:deudas_por_cobrar' %}">
+                                        <i class="ri-currency-line"></i> Deudas por Cobrar
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{% url 'transacciones:deudas_a_pagar' %}">
+                                        <i class="ri-wallet-3-line"></i> Deudas a Pagar
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{% url 'transacciones:certificados_de_ganancias' %}">
+                                        <i class="ri-file-text-line"></i> Certificados Ganancias
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{% url 'transacciones:iva' %}">
+                                        <i class="ri-percent-line"></i> IVA
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+
 
 
                     

@@ -1,4 +1,4 @@
-from django.contrib.messages import get_messages
+
 from django.shortcuts import (
     render, 
     get_object_or_404, 
@@ -25,7 +25,13 @@ from .forms import (
     UserCreateForm
 )
 
-from django.urls import NoReverseMatch, reverse
+from django.urls import NoReverseMatch
+
+from transacciones.models import Transaccion
+
+from django.http import JsonResponse
+from django.db.models import Sum, Q
+from django.db.models.functions import TruncMonth, TruncYear
 
 def login_view(request):
     """
@@ -54,11 +60,63 @@ def login_view(request):
 
 @login_required
 def dashboard_view(request):
-    """
-    Vista principal del usuario (dashboard).
-    Simplemente renderiza la plantilla principal.
-    """
-    return render(request, 'core/dashboard_view.html')
+    ingresos_pesos = Transaccion.objects.filter(conciliado=True, moneda='Pesos', tipo_transaccion='Ingreso').aggregate(Sum('monto'))['monto__sum'] or 0
+    egresos_pesos = Transaccion.objects.filter(conciliado=True, moneda='Pesos', tipo_transaccion='Egreso').aggregate(Sum('monto'))['monto__sum'] or 0
+    otros_ingresos = Transaccion.objects.filter(cuentas=7, tipo_transaccion='Ingreso').aggregate(Sum('monto'))['monto__sum'] or 0
+
+    saldo_cta_pesos = ingresos_pesos - egresos_pesos
+
+    ingresos_dolares = Transaccion.objects.filter(conciliado=True, moneda='Dolares', tipo_transaccion='Ingreso').aggregate(Sum('monto'))['monto__sum'] or 0
+    egresos_dolares = Transaccion.objects.filter(conciliado=True, moneda='Dolares', tipo_transaccion='Egreso').aggregate(Sum('monto'))['monto__sum'] or 0
+    saldo_cta_dolares = ingresos_dolares - egresos_dolares
+
+    deudas_por_cobrar = Transaccion.objects.filter(cuentas__nombre='Factura GlobalGes', fecha_pago__isnull=True)
+    total_deuda_por_cobrar_pesos = deudas_por_cobrar.filter(moneda='Pesos').aggregate(total=Sum('monto'))['total'] or 0
+    total_deuda_por_cobrar_dolares = deudas_por_cobrar.filter(moneda='Dolares').aggregate(total=Sum('monto'))['total'] or 0
+
+    deudas_a_pagar = Transaccion.objects.exclude(cuentas__nombre='Factura GlobalGes').filter(deuda='Si') | Transaccion.objects.exclude(cuentas__nombre='Factura GlobalGes').filter(fecha_pago__isnull=True)
+    total_deudas_a_pagar_pesos = deudas_a_pagar.filter(moneda='Pesos').aggregate(total=Sum('monto'))['total'] or 0
+    total_deudas_a_pagar_dolares = deudas_a_pagar.filter(moneda='Dolares').aggregate(total=Sum('monto'))['total'] or 0
+
+    saldo_real_pesos = saldo_cta_pesos + otros_ingresos + total_deuda_por_cobrar_pesos - total_deudas_a_pagar_pesos
+    saldo_real_dolares = saldo_cta_dolares + total_deuda_por_cobrar_dolares - total_deudas_a_pagar_dolares
+
+    context = {
+        'saldo_cta_pesos': saldo_cta_pesos,
+        'otros_ingresos': otros_ingresos,
+        'total_deuda_por_cobrar_pesos': total_deuda_por_cobrar_pesos,
+        'total_deudas_a_pagar_pesos': total_deudas_a_pagar_pesos,
+        'saldo_real_pesos': saldo_real_pesos,
+        'saldo_cta_dolares': saldo_cta_dolares,
+        'total_deuda_por_cobrar_dolares': total_deuda_por_cobrar_dolares,
+        'total_deudas_a_pagar_dolares': total_deudas_a_pagar_dolares,
+        'saldo_real_dolares': saldo_real_dolares,
+    }
+    return render(request, 'core/dashboard_view.html', context)
+
+@login_required
+def dashboard_data(request):
+    if not request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return JsonResponse({'error': 'Unauthorized'}, status=400)
+
+    transacciones = Transaccion.objects.filter(fecha_pago__year__in=[2024, 2025])
+
+    saldos = transacciones.annotate(
+        anio=TruncYear('fecha_pago'),
+        mes=TruncMonth('fecha_pago')
+    ).values('anio', 'mes').annotate(
+        total_ingresos=Sum('monto', filter=Q(tipo_transaccion='Ingreso')),
+        total_egresos=Sum('monto', filter=Q(tipo_transaccion='Egreso'))
+    ).order_by('anio', 'mes').filter(conciliado=True)
+
+    data = [{
+        'mes': f"{saldo['anio'].year}-{saldo['mes'].strftime('%m')}",
+        'ingresos': saldo['total_ingresos'] or 0,
+        'egresos': saldo['total_egresos'] or 0,
+        'saldo': (saldo['total_ingresos'] or 0) - (saldo['total_egresos'] or 0)
+    } for saldo in saldos]
+
+    return JsonResponse(data, safe=False)
 
 @login_required
 def perfil(request):
@@ -365,7 +423,7 @@ def agregar_editar_form(request, FormClass, template_name, redirect_url, instanc
             form.save()
              # Verifica si `redirect_url` necesita `instance_id`
             try:
-                return redirect(redirect_url, request.FILES, instance_id)
+                return redirect(redirect_url, instance_id)
             except NoReverseMatch:
                 return redirect(redirect_url)
     else:
@@ -395,32 +453,3 @@ def confirm_delete(request, model, redirect_url, id_contrato=None, instance_id=N
     previous_url = request.META.get('HTTP_REFERER', redirect_url)
     
     return render(request, template_name, {'instance': instance, 'previous_url': previous_url})
-
-def agregar_editar_form_complejo(request, FormClass, template_name, redirect_url, instance=None, instance_id=None, id_contrato=None, model=None):
-    # Si se proporciona un `instance_id` y un `model`, recupera la instancia
-    if instance_id and model:
-        instance = get_object_or_404(model, pk=instance_id)
-    
-    if request.method == 'POST':
-        # Pasa `id_contrato` como parte del `kwargs` en el formulario
-        form = FormClass(request.POST, instance=instance, contrato=id_contrato)
-        if form.is_valid():
-            # Asignar `id_contrato` al objeto `pago` antes de guardarlo
-            modelo = form.save(commit=False)
-            if id_contrato:
-                modelo.id_contrato_id = id_contrato  # Asegúrate de asignar el id correcto al pago
-            modelo.save()
-            
-            # Redirigir usando `id_contrato` o `instance_id` si es necesario
-            try:
-                if id_contrato:
-                    return redirect(redirect_url, id_contrato)
-                else:
-                    return redirect(redirect_url, instance_id)
-            except NoReverseMatch:
-                return redirect(redirect_url)
-    else:
-        # En el caso de `GET`, también pasamos `id_contrato` al formulario
-        form = FormClass(instance=instance, contrato=id_contrato)
- 
-    return render(request, template_name, {'form': form, 'instance': instance})

@@ -1,6 +1,6 @@
 {% extends 'core/dashboard.html' %}
 {% load static %}
-{% load custom_tags %}
+{% load humanize %}
 
 {% block specific_css %}
 <!-- Datatables css -->
@@ -12,47 +12,72 @@
 <link href="{% static 'dist/assets/vendor/datatables.net-select-bs5/css/select.bootstrap5.min.css' %}" rel="stylesheet" type="text/css" />
 {% endblock %}
 
-{% block title %}Contactos{% endblock %}
+{% block title %}Resumen IVA{% endblock %}
 {% block title1 %}GlobalGes{% endblock %}
-{% block title2 %}Gestión{% endblock %}
-{% block title3 %}Contactos{% endblock %}
+{% block title2 %}Finanzas{% endblock %}
+{% block title3 %}Resumen IVA{% endblock %}
 
 {% block content %}
 <div class="row">
+    <div class="col-xxl-6 col-md-6">
+        <div class="card widget-flat text-bg-danger">
+            <div class="card-body">
+                <div class="float-end">
+                    <i class="ri-upload-2-line widget-icon"></i>
+                </div>
+                <h6 class="text-uppercase mt-0">IVA Crédito</h6>
+                <h2 class="my-2">{{ total_credito|floatformat:2|intcomma }}</h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xxl-6 col-md-6">
+        <div class="card widget-flat text-bg-success">
+            <div class="card-body">
+                <div class="float-end">
+                    <i class="ri-download-2-line widget-icon"></i>
+                </div>
+                <h6 class="text-uppercase mt-0">IVA Débito</h6>
+                <h2 class="my-2">{{ total_debito|floatformat:2|intcomma }}</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
     <div class="col-12">
         <div class="card">
             <div class="card-header">
-                <h4 class="header-title">Lista de Contactos</h4>
-                <p class="text-muted mb-0">Administra los contactos. Puedes crear, editar o eliminar.</p>
-                <a href="{% url 'catalogos:agregar_contacto' %}" class="btn btn-primary mt-3">
-                    Crear Contacto
-                </a>
+                <h4 class="header-title">IVA Crédito y Débito por Mes</h4>
             </div>
             <div class="card-body">
-                <table id="scroll-horizontal-datatable" class="table table-striped w-100 nowrap">
+                <table id="scroll-horizontal-datatable" class="table table-striped nowrap w-100">
                     <thead>
                         <tr>
-                            <th>Nro</th>
-                            <th>Tipo</th>
-                            <th>CUIT</th>
-                            <th>Nombre</th>
-                            <th>Acciones</th>
+                            <th>Mes</th>
+                            <th>Total IVA Crédito</th>
+                            <th>IVA 21% Débito</th>
+                            <th>Saldo IVA</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {% for contacto in contactos %}
+                        {% for item in totales_por_mes %}
                         <tr>
-                            <td>{{ contacto.id }}</td>
-                            <td>{{ contacto.tipo }}</td>
-                            <td>{{ contacto.cuit }}</td>
-                            <td>{{ contacto.nombre }}</td>
-                            <td>
-                                <a href="{% url 'catalogos:editar_contacto' contacto.id %}" class="btn btn-sm btn-info">Editar</a>
-                                <a href="{% url 'catalogos:eliminar_contacto' contacto.id %}" class="btn btn-sm btn-danger">Eliminar</a>
-                            </td>
+                            <td>{{ item.month|date:"F Y" }}</td>
+                            <td class="text-end">{{ item.total_credito|floatformat:2|intcomma }}</td>
+                            <td class="text-end">{{ item.iva_21_debito|floatformat:2|intcomma }}</td>
+                            <td class="text-end">{{ item.saldo|floatformat:2|intcomma }}</td>
                         </tr>
                         {% endfor %}
                     </tbody>
+                    <tfoot>
+                        <tr>
+                            <th>Mes</th>
+                            <th>Total IVA Crédito</th>
+                            <th>IVA 21% Débito</th>
+                            <th>Saldo IVA</th>
+                        </tr>
+                    </tfoot>
                 </table>
             </div>
         </div>
@@ -61,7 +86,6 @@
 {% endblock %}
 
 {% block specific_js %}
-<!-- Datatables js -->
 <script src="{% static 'dist/assets/vendor/datatables.net/js/jquery.dataTables.min.js' %}"></script>
 <script src="{% static 'dist/assets/vendor/datatables.net-bs5/js/dataTables.bootstrap5.min.js' %}"></script>
 <script src="{% static 'dist/assets/vendor/datatables.net-responsive/js/dataTables.responsive.min.js' %}"></script>
@@ -76,6 +100,6 @@
 <script src="{% static 'dist/assets/vendor/datatables.net-keytable/js/dataTables.keyTable.min.js' %}"></script>
 <script src="{% static 'dist/assets/vendor/datatables.net-select/js/dataTables.select.min.js' %}"></script>
 
-<!-- Datatable Demo App js -->
 <script src="{% static 'dist/assets/js/pages/datatable.init.js' %}"></script>
 {% endblock %}
+

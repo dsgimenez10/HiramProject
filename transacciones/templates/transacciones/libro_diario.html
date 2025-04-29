@@ -1,6 +1,6 @@
 {% extends 'core/dashboard.html' %}
 {% load static %}
-{% load custom_tags %}
+{% load humanize %}
 
 {% block specific_css %}
 <!-- Datatables css -->
@@ -12,69 +12,92 @@
 <link href="{% static 'dist/assets/vendor/datatables.net-select-bs5/css/select.bootstrap5.min.css' %}" rel="stylesheet" type="text/css" />
 {% endblock specific_css %}
 
-{% block title %}Proyectos{% endblock title %}
+{% block title %}Libro Diario{% endblock title %}
 {% block title1 %}GlobalGes{% endblock title1 %}
-{% block title2 %}Gestión{% endblock title2 %}
-{% block title3 %}Proyectos{% endblock title3 %}
+{% block title2 %}Contabilidad{% endblock title2 %}
+{% block title3 %}Libro Diario{% endblock title3 %}
 
 {% block content %}
 <div class="row">
+    <!-- Ingresos Totales -->
+    <div class="col-xxl-4 col-md-6">
+        <div class="card widget-flat text-bg-success">
+            <div class="card-body">
+                <div class="float-end">
+                    <i class="ri-wallet-line widget-icon"></i>
+                </div>
+                <h6 class="text-uppercase mt-0">Ingresos (Pesos)</h6>
+                <h2 class="my-2">{{ ingresos_totales_pesos|floatformat:2|intcomma }}</h2>
+                <p class="mb-0 text-white-50">Totales registrados</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Egresos Totales -->
+    <div class="col-xxl-4 col-md-6">
+        <div class="card widget-flat text-bg-danger">
+            <div class="card-body">
+                <div class="float-end">
+                    <i class="ri-arrow-down-line widget-icon"></i>
+                </div>
+                <h6 class="text-uppercase mt-0">Egresos (Pesos)</h6>
+                <h2 class="my-2">{{ egresos_totales_pesos|floatformat:2|intcomma }}</h2>
+                <p class="mb-0 text-white-50">Totales registrados</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Saldo Final -->
+    <div class="col-xxl-4 col-md-6">
+        <div class="card widget-flat text-bg-primary">
+            <div class="card-body">
+                <div class="float-end">
+                    <i class="ri-bank-line widget-icon"></i>
+                </div>
+                <h6 class="text-uppercase mt-0">Saldo Final (Pesos)</h6>
+                <h2 class="my-2">{{ saldo_total_pesos|floatformat:2|intcomma }}</h2>
+                <p class="mb-0 text-white-50">Actualizado al día</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tabla Libro Diario -->
+<div class="row mt-4">
     <div class="col-12">
         <div class="card">
             <div class="card-header">
-                <h4 class="header-title">Lista de Proyectos</h4>
-                <p class="text-muted mb-0">Administra los proyectos. Puedes crear, editar o eliminar.</p>
-                <a href="{% url 'catalogos:agregar_proyecto'%}" class="btn btn-primary mt-3">
-                    Crear Proyecto
-                </a>
+                <h4 class="header-title">Movimientos del Libro Diario</h4>
             </div>
-
             <div class="card-body">
-                <table id="scroll-horizontal-datatable" class="table table-striped w-100 nowrap">
+                <table id="scroll-horizontal-datatable" class="table table-striped nowrap w-100">
                     <thead>
                         <tr>
-                            <th>Nro</th>
+                            <th>Fecha</th>
                             <th>Contacto</th>
-                            <th>Nombre</th>
-                            <th>Descripción</th>
-                            <th>Fecha Inicio</th>
-                            <th>Fecha Fin</th>
-                            <th>Estado</th>
-                            <th>Moneda</th>
-                            <th>Monto</th>
-                            <th>Acciones</th>
+                            <th>Detalle</th>
+                            <th>Ingreso</th>
+                            <th>Egreso</th>
+                            <th>Saldo</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {% for proyecto in proyectos %}
+                        {% for transaccion in transacciones %}
                         <tr>
-                            <td>{{ proyecto.id }}</td>
-                            <td>
-                                {% if proyecto.contacto %}
-                                    {{ proyecto.contacto.nombre }}
-                                {% else %}
-                                    -
-                                {% endif %}
-                            </td>
-                            <td>{{ proyecto.nombre }}</td>
-                            <td>{{ proyecto.descripcion|default:"-" }}</td>
-                            <td>{{ proyecto.fecha_inicio }}</td>
-                            <td>{{ proyecto.fecha_fin|default:"-" }}</td>
-                            <td>{{ proyecto.estado }}</td>
-                            <td>{{ proyecto.moneda }}</td>
-                            <td>${{ proyecto.monto|floatformat:2 }}</td>
-                            <td>
-                                <a href="{% url 'catalogos:editar_proyecto' proyecto.id %}" class="btn btn-sm btn-info">Editar</a>
-                                <a href="{% url 'catalogos:eliminar_proyecto' proyecto.id %}" class="btn btn-sm btn-danger">Eliminar</a>
-                            </td>
+                            <td>{{ transaccion.fecha_pago|date:"Y/m/d" }}</td>
+                            <td>{{ transaccion.contacto }}</td>
+                            <td>{{ transaccion.detalle }}</td>
+                            <td class="text-end">{% if transaccion.tipo_transaccion == "Ingreso" %}{{ transaccion.monto|floatformat:2|intcomma }}{% else %}0.00{% endif %}</td>
+                            <td class="text-end">{% if transaccion.tipo_transaccion == "Egreso" %}{{ transaccion.monto|floatformat:2|intcomma }}{% else %}0.00{% endif %}</td>
+                            <td class="text-end">{{ transaccion.saldo_acumulado|floatformat:2|intcomma }}</td>
                         </tr>
                         {% endfor %}
                     </tbody>
                 </table>
-            </div> <!-- end card-body -->
-        </div> <!-- end card -->
-    </div> <!-- end col -->
-</div> <!-- end row -->
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock content %}
 
 {% block specific_js %}
@@ -93,6 +116,6 @@
 <script src="{% static 'dist/assets/vendor/datatables.net-keytable/js/dataTables.keyTable.min.js' %}"></script>
 <script src="{% static 'dist/assets/vendor/datatables.net-select/js/dataTables.select.min.js' %}"></script>
 
-<!-- Datatable Demo App js -->
+<!-- Datatable Init -->
 <script src="{% static 'dist/assets/js/pages/datatable.init.js' %}"></script>
 {% endblock specific_js %}

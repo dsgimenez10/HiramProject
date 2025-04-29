@@ -1,0 +1,149 @@
+{% extends 'core/dashboard.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block specific_css %}
+<!-- Datatables css -->
+<link href="{% static 'dist/assets/vendor/datatables.net-bs5/css/dataTables.bootstrap5.min.css' %}" rel="stylesheet" type="text/css" />
+<link href="{% static 'dist/assets/vendor/datatables.net-responsive-bs5/css/responsive.bootstrap5.min.css' %}" rel="stylesheet" type="text/css" />
+<link href="{% static 'dist/assets/vendor/datatables.net-fixedcolumns-bs5/css/fixedColumns.bootstrap5.min.css' %}" rel="stylesheet" type="text/css" />
+<link href="{% static 'dist/assets/vendor/datatables.net-fixedheader-bs5/css/fixedHeader.bootstrap5.min.css' %}" rel="stylesheet" type="text/css" />
+<link href="{% static 'dist/assets/vendor/datatables.net-buttons-bs5/css/buttons.bootstrap5.min.css' %}" rel="stylesheet" type="text/css" />
+<link href="{% static 'dist/assets/vendor/datatables.net-select-bs5/css/select.bootstrap5.min.css' %}" rel="stylesheet" type="text/css" />
+{% endblock %}
+
+{% block title %}Transacciones{% endblock %}
+{% block title1 %}GlobalGes{% endblock %}
+{% block title2 %}Gestión{% endblock %}
+{% block title3 %}Transacciones{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="header-title">Lista de Transacciones</h4>
+                <p class="text-muted mb-0">Administra tus ingresos y egresos. Puedes crear, editar o eliminar transacciones.</p>
+                <a href="{% url 'transacciones:agregar_transaccion' %}" class="btn btn-primary mt-3">
+                    Agregar Transacción
+                </a>
+            </div>
+
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table id="scroll-horizontal-datatable" class="table table-striped w-100 nowrap">
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Proyecto</th>
+                                <th>Transacción</th>
+                                <th>Contacto</th>
+                                <th>Cuenta</th>
+                                <th>Detalle</th>
+                                <th>Monto</th>
+                                <th>Fecha de Pago</th>
+                                <th>Deuda</th>
+                                <th>Conciliado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for transaccion in transacciones %}
+                            <tr>
+                                <td>{{ transaccion.fecha|date:"Y/m/d" }}</td>
+                                <td>{{ transaccion.proyecto.nombre }}</td>
+                                <td>{{ transaccion.tipo_transaccion }}</td>
+                                <td>{{ transaccion.contacto.nombre }}</td>
+                                <td>{{ transaccion.cuentas }}</td>
+                                <td>{{ transaccion.detalle }}</td>
+                                <td class="text-end">${{ transaccion.monto|floatformat:2|intcomma }}</td>
+                                <td>{{ transaccion.fecha_pago|date:"Y/m/d" }}</td>
+                                <td>{{ transaccion.deuda }}</td>
+                                <td>
+                                    <div class="form-check form-switch">
+                                      <input type="checkbox"
+                                             class="form-check-input toggle-conciliado"
+                                             id="conciliadoSwitch{{ transaccion.id }}"
+                                             data-transaccion-id="{{ transaccion.id }}"
+                                             {% if transaccion.conciliado %}checked{% endif %}>
+                                      <label class="form-check-label" for="conciliadoSwitch{{ transaccion.id }}"></label>
+                                    </div>
+                                  </td>
+                                <td>
+                                    <a href="{% url 'transacciones:editar_transaccion' transaccion.id %}" class="btn btn-sm btn-info">Editar</a>
+                                    <a href="{% url 'transacciones:eliminar_transaccion' transaccion.id %}" class="btn btn-sm btn-danger">Eliminar</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div> <!-- end table-responsive -->
+            </div> <!-- end card-body -->
+        </div> <!-- end card -->
+    </div> <!-- end col -->
+</div> <!-- end row -->
+{% endblock %}
+
+{% block specific_js %}
+<!-- Datatables js -->
+<script src="{% static 'dist/assets/vendor/datatables.net/js/jquery.dataTables.min.js' %}"></script>
+<script src="{% static 'dist/assets/vendor/datatables.net-bs5/js/dataTables.bootstrap5.min.js' %}"></script>
+<script src="{% static 'dist/assets/vendor/datatables.net-responsive/js/dataTables.responsive.min.js' %}"></script>
+<script src="{% static 'dist/assets/vendor/datatables.net-responsive-bs5/js/responsive.bootstrap5.min.js' %}"></script>
+<script src="{% static 'dist/assets/vendor/datatables.net-fixedcolumns-bs5/js/fixedColumns.bootstrap5.min.js' %}"></script>
+<script src="{% static 'dist/assets/vendor/datatables.net-fixedheader/js/dataTables.fixedHeader.min.js' %}"></script>
+<script src="{% static 'dist/assets/vendor/datatables.net-buttons/js/dataTables.buttons.min.js' %}"></script>
+<script src="{% static 'dist/assets/vendor/datatables.net-buttons-bs5/js/buttons.bootstrap5.min.js' %}"></script>
+<script src="{% static 'dist/assets/vendor/datatables.net-buttons/js/buttons.html5.min.js' %}"></script>
+<script src="{% static 'dist/assets/vendor/datatables.net-buttons/js/buttons.flash.min.js' %}"></script>
+<script src="{% static 'dist/assets/vendor/datatables.net-buttons/js/buttons.print.min.js' %}"></script>
+<script src="{% static 'dist/assets/vendor/datatables.net-keytable/js/dataTables.keyTable.min.js' %}"></script>
+<script src="{% static 'dist/assets/vendor/datatables.net-select/js/dataTables.select.min.js' %}"></script>
+
+<!-- Datatable Demo App js -->
+<script src="{% static 'dist/assets/js/pages/datatable.init.js' %}"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]')?.value;
+
+        if (!csrftoken) {
+            console.error('No se encontró el token CSRF en el HTML.');
+            return;
+        }
+
+        // Seleccionar todos los switches de conciliación
+        const switches = document.querySelectorAll('.toggle-conciliado');
+
+        switches.forEach(function (toggle) {
+            toggle.addEventListener('change', function () {
+                const transaccionId = this.getAttribute('data-transaccion-id');
+                const conciliado = this.checked ? 'true' : 'false'; // Convertir a texto
+
+                // Enviar la solicitud AJAX para actualizar el estado
+                fetch("{% url 'transacciones:actualizar_conciliado' %}", {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrftoken,
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams({
+                        'transaccion_id': transaccionId,
+                        'conciliado': conciliado
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        console.log("Conciliado actualizado correctamente.");
+                    } else {
+                        console.error("Error al actualizar:", data.message);
+                    }
+                })
+                .catch(error => console.error("Error en la solicitud:", error));
+            });
+        });
+    });
+</script>
+{% endblock %}
+

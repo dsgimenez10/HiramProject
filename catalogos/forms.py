@@ -7,7 +7,6 @@ class ProyectoForm(forms.ModelForm):
         fields = '__all__'
 
     def __init__(self, *args, **kwargs):
-        contacto = kwargs.pop('contrato', None)  # Usás "contrato" como parámetro dinámico
         super().__init__(*args, **kwargs)
 
         self.fields['contacto'].widget.attrs.update({'class': 'form-control'})
@@ -19,8 +18,6 @@ class ProyectoForm(forms.ModelForm):
         self.fields['moneda'].widget.attrs.update({'class': 'form-control'})
         self.fields['monto'].widget.attrs.update({'class': 'form-control'})
 
-        if contacto:
-            self.fields['contacto'].initial = contacto
 
 class ContactoForm(forms.ModelForm):
     class Meta:
