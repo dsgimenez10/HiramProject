@@ -26,12 +26,14 @@ from .forms import (
 )
 
 from django.urls import NoReverseMatch
-
 from transacciones.models import Transaccion
-
 from django.http import JsonResponse
 from django.db.models import Sum, Q
 from django.db.models.functions import TruncMonth, TruncYear
+from catalogos.models import Cuentas, Proyecto
+from decimal import Decimal
+from collections import defaultdict
+from django.db.models import F, Case, When, Value, DecimalField
 
 def login_view(request):
     """
@@ -75,8 +77,23 @@ def dashboard_view(request):
     total_deuda_por_cobrar_dolares = deudas_por_cobrar.filter(moneda='Dolares').aggregate(total=Sum('monto'))['total'] or 0
 
     deudas_a_pagar = Transaccion.objects.exclude(cuentas__nombre='Factura GlobalGes').filter(deuda='Si') | Transaccion.objects.exclude(cuentas__nombre='Factura GlobalGes').filter(fecha_pago__isnull=True)
-    total_deudas_a_pagar_pesos = deudas_a_pagar.filter(moneda='Pesos').aggregate(total=Sum('monto'))['total'] or 0
-    total_deudas_a_pagar_dolares = deudas_a_pagar.filter(moneda='Dolares').aggregate(total=Sum('monto'))['total'] or 0
+
+    deudas_a_pagar = deudas_a_pagar.annotate(
+        monto_ajustado=Case(
+            When(cuentas__nombre='IVA Credito', then=F('monto')),
+            When(cuentas__nombre='IVA Debito', then=F('monto') * -1),
+            default=F('monto'),
+            output_field=DecimalField()
+        )
+    )
+
+    total_deudas_a_pagar_pesos = deudas_a_pagar.filter(moneda='Pesos').aggregate(
+        total=Sum('monto_ajustado')
+    )['total'] or 0
+
+    total_deudas_a_pagar_dolares = deudas_a_pagar.filter(moneda='Dolares').aggregate(
+        total=Sum('monto_ajustado')
+    )['total'] or 0
 
     saldo_real_pesos = saldo_cta_pesos + otros_ingresos + total_deuda_por_cobrar_pesos - total_deudas_a_pagar_pesos
     saldo_real_dolares = saldo_cta_dolares + total_deuda_por_cobrar_dolares - total_deudas_a_pagar_dolares
@@ -94,29 +111,115 @@ def dashboard_view(request):
     }
     return render(request, 'core/dashboard_view.html', context)
 
+
+
 @login_required
 def dashboard_data(request):
     if not request.headers.get('x-requested-with') == 'XMLHttpRequest':
         return JsonResponse({'error': 'Unauthorized'}, status=400)
 
-    transacciones = Transaccion.objects.filter(fecha_pago__year__in=[2024, 2025])
+    transacciones = Transaccion.objects.filter(
+        conciliado=True,
+        fecha_pago__year__in=[2024, 2025]
+    )
 
     saldos = transacciones.annotate(
         anio=TruncYear('fecha_pago'),
         mes=TruncMonth('fecha_pago')
     ).values('anio', 'mes').annotate(
         total_ingresos=Sum('monto', filter=Q(tipo_transaccion='Ingreso')),
-        total_egresos=Sum('monto', filter=Q(tipo_transaccion='Egreso'))
-    ).order_by('anio', 'mes').filter(conciliado=True)
+        total_egresos=Sum('monto', filter=Q(tipo_transaccion='Egreso')),
+    ).order_by('mes')
 
-    data = [{
-        'mes': f"{saldo['anio'].year}-{saldo['mes'].strftime('%m')}",
-        'ingresos': saldo['total_ingresos'] or 0,
-        'egresos': saldo['total_egresos'] or 0,
-        'saldo': (saldo['total_ingresos'] or 0) - (saldo['total_egresos'] or 0)
-    } for saldo in saldos]
+    data = []
+    saldo_acumulado = 0
+
+    for item in saldos:
+        ingresos = float(item['total_ingresos'] or 0)
+        egresos = float(item['total_egresos'] or 0)
+        saldo_anterior = saldo_acumulado
+        saldo_acumulado += ingresos - egresos
+
+        data.append({
+            'mes': f"{item['mes'].strftime('%Y-%m')}",
+            'ingresos': ingresos,
+            'egresos': egresos,
+            'saldo_acumulado': saldo_acumulado,
+            'saldo_anterior': saldo_anterior
+        })
 
     return JsonResponse(data, safe=False)
+
+def datos_cuentas_logicas(request):
+    cuentas = Cuentas.objects.all()
+    cuentas_data = []
+
+    for cuenta in cuentas:
+        ingresos_pesos = Transaccion.objects.filter(
+            cuentas=cuenta, tipo_transaccion='Ingreso', moneda='Pesos', conciliado=True
+        ).aggregate(total=Sum('monto'))['total'] or Decimal('0.00')
+
+        egresos_pesos = Transaccion.objects.filter(
+            cuentas=cuenta, tipo_transaccion='Egreso', moneda='Pesos', conciliado=True
+        ).aggregate(total=Sum('monto'))['total'] or Decimal('0.00')
+
+        saldo_pesos = ingresos_pesos - egresos_pesos
+
+        ingresos_dolares = Transaccion.objects.filter(
+            cuentas=cuenta, tipo_transaccion='Ingreso', moneda='Dolares', conciliado=True
+        ).aggregate(total=Sum('monto'))['total'] or Decimal('0.00')
+
+        egresos_dolares = Transaccion.objects.filter(
+            cuentas=cuenta, tipo_transaccion='Egreso', moneda='Dolares', conciliado=True
+        ).aggregate(total=Sum('monto'))['total'] or Decimal('0.00')
+
+        saldo_dolares = ingresos_dolares - egresos_dolares
+
+        cuentas_data.append({
+            'cuenta': cuenta.nombre,
+            'pesos': float(saldo_pesos),
+            'dolares': float(saldo_dolares),
+            'total': abs(saldo_pesos) + abs(saldo_dolares)
+        })
+
+    cuentas_data.sort(key=lambda x: x['total'], reverse=True)
+    data = cuentas_data[:10]
+
+    return JsonResponse(data, safe=False)
+
+
+@login_required
+def dashboard_data_proyectos_completo(request):
+    proyectos = Proyecto.objects.all()
+    labels = []
+    ingresos_list = []
+    egresos_list = []
+    saldos_list = []
+
+    for proyecto in proyectos:
+        ingresos = Transaccion.objects.filter(
+            proyecto=proyecto, tipo_transaccion='Ingreso', conciliado=True, moneda='Pesos'
+        ).aggregate(total=Sum('monto'))['total'] or 0
+
+        egresos = Transaccion.objects.filter(
+            proyecto=proyecto, tipo_transaccion='Egreso', conciliado=True, moneda='Pesos'
+        ).aggregate(total=Sum('monto'))['total'] or 0
+
+        saldo = ingresos - egresos
+
+        labels.append(proyecto.nombre)
+        ingresos_list.append(float(ingresos))
+        egresos_list.append(float(egresos))
+        saldos_list.append(float(saldo))
+
+    return JsonResponse({
+        'labels': labels,
+        'ingresos': ingresos_list,
+        'egresos': egresos_list,
+        'saldos': saldos_list
+    })
+
+
 
 @login_required
 def perfil(request):

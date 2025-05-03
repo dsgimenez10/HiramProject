@@ -2,11 +2,14 @@ from django.shortcuts import render
 from .models import Transaccion
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from django.db.models import Sum, F, Case, When, DecimalField
+from django.db.models import Sum, F, Case, When, DecimalField, Value as V
 from django.db.models.functions import TruncMonth
-from django.db.models import Sum
-from django.db.models.functions import TruncMonth
-from catalogos.models import Proyecto, Contacto, Cuentas, CuentaBancaria
+from catalogos.models import Proyecto, Cuentas
+from django.db.models import Sum, F, DecimalField
+from decimal import Decimal
+
+
+
 # Listados ---------------------------------------------------------------------------------------------------------
 
 def transaccion(request):
@@ -168,25 +171,44 @@ def deudas_por_cobrar(request):
         'total_deuda_dolares': total_deuda_dolares
     })
 
+from django.db.models import F, Case, When, Value, DecimalField
+
 def deudas_a_pagar(request):
-    # Filtrar las transacciones que no son de 'Factura GlobalGes' y no tienen fecha_pago
-    # Filtrar las transacciones que no son de 'Factura GlobalGes' y, si tienen 'deuda' en 'Si', no importar la fecha_pago
+    # Filtrar transacciones con deuda "Sí" o sin fecha_pago (excepto Factura GlobalGes)
     deudas = Transaccion.objects.exclude(cuentas__nombre='Factura GlobalGes').filter(
-        deuda='Si'  # Incluir las transacciones con deuda en 'Si'
+        deuda='Si'
     ) | Transaccion.objects.exclude(cuentas__nombre='Factura GlobalGes').filter(fecha_pago__isnull=True)
-    
-    # Agrupar por moneda y contacto, y sumar el monto
-    deudas_por_moneda_y_contacto = deudas.values('moneda', 'contacto__nombre').annotate(total_monto=Sum('monto')).order_by('moneda', 'contacto__nombre')
-    
-    # Calcular el total en Pesos y Dólares
-    total_deuda_pesos = deudas.filter(moneda='Pesos').aggregate(total=Sum('monto'))['total'] or 0
-    total_deuda_dolares = deudas.filter(moneda='Dolares').aggregate(total=Sum('monto'))['total'] or 0
-    
+
+    # Anotar signo según la cuenta (IVA Credito suma, IVA Debito resta, el resto queda igual)
+    deudas = deudas.annotate(
+        monto_ajustado=Case(
+            When(cuentas__nombre='IVA Credito', then=F('monto')),
+            When(cuentas__nombre='IVA Debito', then=F('monto') * -1),
+            default=F('monto'),
+            output_field=DecimalField()
+        )
+    )
+
+    # Agrupar por moneda y contacto con el monto ajustado
+    deudas_por_moneda_y_contacto = deudas.values('moneda', 'contacto__nombre').annotate(
+        total_monto=Sum('monto_ajustado')
+    ).order_by('moneda', 'contacto__nombre')
+
+    # Calcular totales ajustados por moneda
+    total_deuda_pesos = deudas.filter(moneda='Pesos').aggregate(
+        total=Sum('monto_ajustado')
+    )['total'] or 0
+
+    total_deuda_dolares = deudas.filter(moneda='Dolares').aggregate(
+        total=Sum('monto_ajustado')
+    )['total'] or 0
+
     return render(request, 'transacciones/deudas_a_pagar.html', {
         'deudas_por_moneda_y_contacto': deudas_por_moneda_y_contacto,
         'total_deuda_pesos': total_deuda_pesos,
         'total_deuda_dolares': total_deuda_dolares
     })
+
 
 def saldos_por_contacto(request):
     # Filtrar transacciones que están conciliadas
@@ -336,3 +358,60 @@ def iva(request):
         'total_debito': total_debito,
         'total_credito': total_credito,
     })
+
+
+def resumen_por_cuenta_view(request):
+    cuentas = Cuentas.objects.all()
+    resumen_por_cuenta = []
+
+    for cuenta in cuentas:
+        # Pesos
+        ingresos_pesos = Transaccion.objects.filter(
+            cuentas=cuenta,
+            tipo_transaccion='Ingreso',
+            moneda='Pesos',
+            conciliado=True
+        ).aggregate(total=Sum('monto'))['total'] or Decimal('0.00')
+
+        egresos_pesos = Transaccion.objects.filter(
+            cuentas=cuenta,
+            tipo_transaccion='Egreso',
+            moneda='Pesos',
+            conciliado=True
+        ).aggregate(total=Sum('monto'))['total'] or Decimal('0.00')
+
+        saldo_pesos = ingresos_pesos - egresos_pesos
+
+        # Dólares
+        ingresos_dolares = Transaccion.objects.filter(
+            cuentas=cuenta,
+            tipo_transaccion='Ingreso',
+            moneda='Dolares',
+            conciliado=True
+        ).aggregate(total=Sum('monto'))['total'] or Decimal('0.00')
+
+        egresos_dolares = Transaccion.objects.filter(
+            cuentas=cuenta,
+            tipo_transaccion='Egreso',
+            moneda='Dolares',
+            conciliado=True
+        ).aggregate(total=Sum('monto'))['total'] or Decimal('0.00')
+
+        saldo_dolares = ingresos_dolares - egresos_dolares
+
+        # Solo agregar si hay movimientos
+        if any([ingresos_pesos, egresos_pesos, ingresos_dolares, egresos_dolares]):
+            resumen_por_cuenta.append({
+                'cuenta': cuenta,
+                'ingresos_pesos': ingresos_pesos,
+                'egresos_pesos': egresos_pesos,
+                'saldo_pesos': saldo_pesos,
+                'ingresos_dolares': ingresos_dolares,
+                'egresos_dolares': egresos_dolares,
+                'saldo_dolares': saldo_dolares,
+            })
+
+    return render(request, 'transacciones/resumen_por_cuenta.html', {
+        'resumen_por_cuenta': resumen_por_cuenta
+    })
+    

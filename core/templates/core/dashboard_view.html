@@ -143,13 +143,54 @@
     </div>
   </div>
 </div>
+
+
+<div class="row mt-4">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="header-title mb-0">Saldos por Cuentas</h5>
+        </div>
+        <div class="card-body">
+          <div id="grafico-cuentas-logicas" class="apex-charts" style="height: 400px;"></div>
+        </div>
+      </div>
+    </div>
+</div>
+
+<div class="row mb-5">
+    <div class="col-xl-6">
+        <div class="card h-100">
+            <div class="card-body">
+                <h4 class="header-title mb-0">Ingresos, Egresos y Saldo por Proyecto</h4>
+                <div dir="ltr">
+                    <div id="grafico-barras-proyecto" class="apex-charts" style="height: 400px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-6">
+        <div class="card h-100">
+            <div class="card-body">
+                <h4 class="header-title mb-0">Saldo por Proyecto</h4>
+                <div dir="ltr">
+                    <div id="grafico-torta-saldo" class="apex-charts" style="height: 400px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
 {% endblock %}
 
 {% block specific_js %}
 <script src="{% static 'dist/assets/vendor/apexcharts/apexcharts.min.js' %}"></script>
 
 <script>
-document.addEventListener("DOMContentLoaded", function () {
+    document.addEventListener("DOMContentLoaded", function () {
     fetch("{% url 'dashboard_data' %}", {
         headers: { "X-Requested-With": "XMLHttpRequest" }
     })
@@ -158,58 +199,49 @@ document.addEventListener("DOMContentLoaded", function () {
         const meses = data.map(item => item.mes);
         const ingresos = data.map(item => item.ingresos);
         const egresos = data.map(item => item.egresos);
-        const saldos = data.map(item => item.saldo);
+        const acumulado = data.map(item => item.saldo_acumulado);
+        const anteriores = data.map(item => item.saldo_anterior);
 
-        var options = {
+        const options = {
             chart: {
                 height: 400,
                 type: 'bar',
-                toolbar: { show: false },
+                toolbar: { show: false }
             },
             plotOptions: {
-                bar: {
-                    horizontal: false,
-                    columnWidth: '55%',
-                    endingShape: 'rounded'
-                }
+                bar: { columnWidth: '50%' }
             },
+            stroke: { show: false },
             dataLabels: { enabled: false },
-            stroke: { show: true, width: 2, colors: ['transparent'] },
             series: [
-                {
-                    name: 'Ingresos',
-                    data: ingresos
-                },
-                {
-                    name: 'Egresos',
-                    data: egresos
-                },
-                {
-                    name: 'Saldo',
-                    data: saldos
-                }
+                { name: 'Ingresos', data: ingresos },
+                { name: 'Egresos', data: egresos },
+                { name: 'Saldo acumulado', data: acumulado }
             ],
+            colors: ['#28a745', '#dc3545', '#007bff'],
             xaxis: {
                 categories: meses,
-                labels: {
-                    rotate: -45,
-                    style: { fontSize: '12px', fontWeight: 600 }
-                }
+                labels: { rotate: -45, style: { fontSize: '12px', fontWeight: 600 } }
             },
             yaxis: {
                 title: { text: 'Montos ($)' },
                 labels: {
-                    formatter: function (val) {
-                        return "$" + parseInt(val);
-                    }
+                    formatter: val => "$" + val.toLocaleString()
                 }
             },
-            fill: {
-                opacity: 1
-            },
-            colors: ['#28a745', '#dc3545', '#007bff'],
             tooltip: {
-                y: { formatter: function (val) { return "$" + val; } }
+                shared: true,
+                intersect: false,
+                custom: function({ series, seriesIndex, dataPointIndex, w }) {
+                    return `
+                        <div style="padding:8px">
+                            <strong>${meses[dataPointIndex]}</strong><br>
+                            Ingresos: $${ingresos[dataPointIndex].toLocaleString()}<br>
+                            Egresos: $${egresos[dataPointIndex].toLocaleString()}<br>
+                            Saldo anterior: $${anteriores[dataPointIndex].toLocaleString()}<br>
+                            Saldo acumulado: $${acumulado[dataPointIndex].toLocaleString()}
+                        </div>`;
+                }
             },
             legend: {
                 position: 'top',
@@ -217,10 +249,182 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         };
 
-        var chart = new ApexCharts(document.querySelector("#grafico-saldos"), options);
-        chart.render();
+        new ApexCharts(document.querySelector("#grafico-saldos"), options).render();
     })
     .catch(error => console.error('Error al cargar datos del gráfico:', error));
-});
+    });
+
 </script>
+ 
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        fetch("{% url 'datos_cuentas_logicas' %}", {
+            headers: { "X-Requested-With": "XMLHttpRequest" }
+        })
+        .then(response => response.json())
+        .then(data => {
+            const cuentas = data.map(item => item.cuenta);
+            const pesos = data.map(item => item.pesos);
+            const dolares = data.map(item => item.dolares);
+    
+            const options = {
+                chart: {
+                    type: 'bar',
+                    height: 400,
+                    stacked: true,
+                    toolbar: { show: false }
+                },
+                plotOptions: {
+                    bar: {
+                        horizontal: true,
+                        borderRadius: 4,
+                        barHeight: '60%',
+                        colors: {
+                            ranges: [
+                                { from: -Infinity, to: 0, color: '#dc3545' } // rojo si es negativo
+                            ]
+                        }
+                    }
+                },
+                dataLabels: {
+                    enabled: true,
+                    formatter: function (val) {
+                        return "$" + val.toLocaleString();
+                    },
+                    style: {
+                        fontWeight: 'bold'
+                    }
+                },
+                series: [
+                    {
+                        name: 'Pesos',
+                        data: pesos
+                    },
+                    {
+                        name: 'Dólares',
+                        data: dolares
+                    }
+                ],
+                xaxis: {
+                    categories: cuentas,
+                    labels: {
+                        style: { fontSize: '12px' }
+                    }
+                },
+                yaxis: {
+                    title: { text: undefined }
+                },
+                tooltip: {
+                    y: {
+                        formatter: function (val) {
+                            return "$" + val.toLocaleString();
+                        }
+                    }
+                },
+                colors: ['#28a745', '#007bff'],
+                legend: {
+                    position: 'top',
+                    horizontalAlign: 'center'
+                }
+            };
+    
+            const chart = new ApexCharts(document.querySelector("#grafico-cuentas-logicas"), options);
+            chart.render();
+        })
+        .catch(error => console.error("Error al cargar saldos por cuenta lógica:", error));
+    });
+</script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        fetch("{% url 'dashboard_data_proyectos_completo' %}", {
+            headers: { "X-Requested-With": "XMLHttpRequest" }
+        })
+        .then(response => response.json())
+        .then(data => {
+            const labels = data.labels;
+            const ingresos = data.ingresos;
+            const egresos = data.egresos;
+            const saldos = data.saldos;
+    
+            // Gráfico de Barras
+            const optionsBarras = {
+                chart: {
+                    type: 'bar',
+                    height: 400,
+                    stacked: false,
+                    toolbar: { show: false }
+                },
+                plotOptions: {
+                    bar: {
+                        horizontal: false,
+                        columnWidth: '45%',
+                        endingShape: 'rounded'
+                    }
+                },
+                dataLabels: { enabled: false },
+                series: [
+                    { name: 'Ingresos', data: ingresos },
+                    { name: 'Egresos', data: egresos },
+                    { name: 'Saldo', data: saldos }
+                ],
+                xaxis: {
+                    categories: labels,
+                    labels: {
+                        rotate: -45,
+                        style: { fontSize: '9px', fontWeight: 500 }
+                    }
+                },
+                yaxis: {
+                    title: { text: 'Montos ($)' },
+                    labels: {
+                        formatter: val => "$" + val.toLocaleString()
+                    }
+                },
+                colors: ['#198754', '#dc3545', '#0d6efd'],
+                tooltip: {
+                    y: {
+                        formatter: val => "$" + val.toLocaleString()
+                    }
+                },
+                legend: {
+                    position: 'top',
+                    horizontalAlign: 'center'
+                }
+            };
+            new ApexCharts(document.querySelector("#grafico-barras-proyecto"), optionsBarras).render();
+    
+           // Calcular el total antes de crear el gráfico
+            const totalSaldos = saldos.reduce((a, b) => a + b, 0);
+
+            // Gráfico de Torta
+            const optionsTorta = {
+                chart: {
+                    type: 'pie',
+                    height: 400
+                },
+                series: saldos,
+                labels: labels,
+                tooltip: {
+                    y: {
+                        formatter: function (value) {
+                            const porcentaje = ((value / totalSaldos) * 100).toFixed(1);
+                            return `$${value.toLocaleString()}`;
+                        }
+                    }
+                },
+                legend: {
+                    position: 'bottom'
+                },
+                colors: ['#0d6efd', '#198754', '#ffc107', '#dc3545', '#6f42c1', '#20c997']
+            };
+            new ApexCharts(document.querySelector("#grafico-torta-saldo"), optionsTorta).render();
+        })
+        .catch(error => console.error('Error cargando datos:', error));
+    });
+</script>
+    
+  
+    
 {% endblock %}

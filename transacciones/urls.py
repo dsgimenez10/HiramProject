@@ -1,7 +1,7 @@
 from django.urls import path
 from .forms import TransaccionForm
 from .models import Transaccion
-from .views import libro_diario, actualizar_conciliado, resumen_por_proyecto, deudas_por_cobrar, deudas_a_pagar, saldos_por_contacto, certificados_de_ganancias, iva, transaccion
+from .views import libro_diario, actualizar_conciliado, resumen_por_proyecto, deudas_por_cobrar, deudas_a_pagar, saldos_por_contacto, certificados_de_ganancias, iva, transaccion, resumen_por_cuenta_view
 from core.views import agregar_editar_form, confirm_delete
 
 app_name = 'transacciones'
@@ -20,6 +20,7 @@ urlpatterns = [
     path('saldos_por_contacto/', saldos_por_contacto, name='saldos_por_contacto'),
     path('certificados_de_ganancias/', certificados_de_ganancias, name='certificados_de_ganancias'),
     path('iva/', iva, name='iva'),
+    path('resumen-cuentas/', resumen_por_cuenta_view, name='resumen_por_cuenta'),
 
     # Transaccion
 

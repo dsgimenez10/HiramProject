@@ -1,12 +1,14 @@
 from django.urls import path
-from .views import login_view, dashboard_view, perfil, password_change_view, list_users, create_user, admin_user_edit_view, delete_user, list_groups, create_group_view, edit_group_view, delete_group, dashboard_data
+from .views import login_view, dashboard_view, perfil, password_change_view, list_users, create_user, admin_user_edit_view, delete_user, list_groups, create_group_view, edit_group_view, delete_group, dashboard_data, datos_cuentas_logicas, dashboard_data_proyectos_completo
 
 
 
 urlpatterns = [
     path('', login_view, name='login'),
    path('dashboard/', dashboard_view, name='dashboard_view'),
-    path('dashboard/data/', dashboard_data, name='dashboard_data'),  # 👈 Correcto
+    path('dashboard/data/', dashboard_data, name='dashboard_data'),
+    path('api/cuentas-logicas/', datos_cuentas_logicas, name='datos_cuentas_logicas'),
+    path('dashboard/data/proyectos/', dashboard_data_proyectos_completo, name='dashboard_data_proyectos_completo'),
     path('perfil/', perfil, name='perfil'),
     path('password-change/', password_change_view, name='password_change'),
     path('miadmin/users/', list_users, name='list_users'),
