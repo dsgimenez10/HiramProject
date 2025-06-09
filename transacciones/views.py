@@ -2,7 +2,7 @@ from django.shortcuts import render
 from .models import Transaccion
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from django.db.models import Sum, F, Case, When, DecimalField, Value as V
+from django.db.models import Sum, F, Case, When, DecimalField, Value as V, Q
 from django.db.models.functions import TruncMonth
 from catalogos.models import Proyecto, Cuentas
 from django.db.models import Sum, F, DecimalField
@@ -175,9 +175,11 @@ from django.db.models import F, Case, When, Value, DecimalField
 
 def deudas_a_pagar(request):
     # Filtrar transacciones con deuda "Sí" o sin fecha_pago (excepto Factura GlobalGes)
-    deudas = Transaccion.objects.exclude(cuentas__nombre='Factura GlobalGes').filter(
-        deuda='Si'
-    ) | Transaccion.objects.exclude(cuentas__nombre='Factura GlobalGes').filter(fecha_pago__isnull=True)
+    deudas = (
+        Transaccion.objects
+        .exclude(cuentas__nombre__in=['Factura GlobalGes', 'Plazo Fijo Constituido (Contable)'])
+        .filter(Q(deuda='Si') | Q(fecha_pago__isnull=True))
+    )
 
     # Anotar signo según la cuenta (IVA Credito suma, IVA Debito resta, el resto queda igual)
     deudas = deudas.annotate(

@@ -66,6 +66,11 @@ def dashboard_view(request):
     egresos_pesos = Transaccion.objects.filter(conciliado=True, moneda='Pesos', tipo_transaccion='Egreso').aggregate(Sum('monto'))['monto__sum'] or 0
     otros_ingresos = Transaccion.objects.filter(cuentas=7, tipo_transaccion='Ingreso').aggregate(Sum('monto'))['monto__sum'] or 0
 
+    plazo_fijo = Transaccion.objects.filter(cuentas__nombre='Plazo Fijo Constituido (Contable)', fecha_pago__isnull=True)
+    plazo_fijo = plazo_fijo.filter(moneda='Pesos').aggregate(total=Sum('monto'))['total'] or 0
+
+    
+
     saldo_cta_pesos = ingresos_pesos - egresos_pesos
 
     ingresos_dolares = Transaccion.objects.filter(conciliado=True, moneda='Dolares', tipo_transaccion='Ingreso').aggregate(Sum('monto'))['monto__sum'] or 0
@@ -76,7 +81,11 @@ def dashboard_view(request):
     total_deuda_por_cobrar_pesos = deudas_por_cobrar.filter(moneda='Pesos').aggregate(total=Sum('monto'))['total'] or 0
     total_deuda_por_cobrar_dolares = deudas_por_cobrar.filter(moneda='Dolares').aggregate(total=Sum('monto'))['total'] or 0
 
-    deudas_a_pagar = Transaccion.objects.exclude(cuentas__nombre='Factura GlobalGes').filter(deuda='Si') | Transaccion.objects.exclude(cuentas__nombre='Factura GlobalGes').filter(fecha_pago__isnull=True)
+    deudas_a_pagar = (
+        Transaccion.objects
+        .exclude(cuentas__nombre__in=['Factura GlobalGes', 'Plazo Fijo Constituido (Contable)'])
+        .filter(Q(deuda='Si') | Q(fecha_pago__isnull=True))
+    )
 
     deudas_a_pagar = deudas_a_pagar.annotate(
         monto_ajustado=Case(
@@ -108,6 +117,7 @@ def dashboard_view(request):
         'total_deuda_por_cobrar_dolares': total_deuda_por_cobrar_dolares,
         'total_deudas_a_pagar_dolares': total_deudas_a_pagar_dolares,
         'saldo_real_dolares': saldo_real_dolares,
+        'plazo_fijo': plazo_fijo,
     }
     return render(request, 'core/dashboard_view.html', context)
 
